@@ -22,5 +22,7 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
   for unsupported metric and venue combinations.
 - Read-only crypto project and exchange announcement search/detail tools with explicit source and
   category enums, bounded detail fields, compact list records, and agent-correctable input errors.
+- Read-only Polymarket event search/detail tools with explicit category and sort enums, integer
+  event IDs, slug-first lookup, and local child-market sorting/paging over one Data API response.
 - CI, package-content validation, contribution guidance, architecture notes, and security reporting
   policy.

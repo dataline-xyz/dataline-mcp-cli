@@ -28,6 +28,8 @@ try {
     "get_crypto_project",
     "find_exchange_announcements",
     "get_exchange_announcement",
+    "find_prediction_events",
+    "get_prediction_event",
   ];
   const actualTools = tools.tools.map((tool) => tool.name);
   for (const tool of expectedTools) {

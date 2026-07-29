@@ -107,6 +107,8 @@ services.
 | `get_crypto_project`            | Project fundamentals and metadata                         |
 | `find_exchange_announcements`   | Search exchange announcements with structured filters     |
 | `get_exchange_announcement`     | Full content for one exchange announcement                |
+| `find_prediction_events`        | Browse Polymarket events by query, category, and ranking  |
+| `get_prediction_event`          | Event details with locally sorted and paged child markets |
 
 See [Architecture](docs/architecture.md), [Authentication](docs/authentication.md), and
 [Development](docs/development.md) for the maintained design notes.
@@ -123,6 +125,7 @@ See [Architecture](docs/architecture.md), [Authentication](docs/authentication.m
 - [x] Crypto price and OHLCV MCP tools
 - [x] Perpetual snapshot and combined history MCP tools
 - [x] Crypto project and exchange announcement search/detail MCP tools
+- [x] Polymarket event search/detail MCP tools
 - [ ] Remaining query tools and matching CLI commands
 - [ ] Signed Base Sepolia end-to-end payment test
 

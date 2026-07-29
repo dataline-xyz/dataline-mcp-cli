@@ -37,6 +37,8 @@ export { registerPerpetualTools } from "./features/perpetuals/register.js";
 export { PerpetualsService } from "./features/perpetuals/service.js";
 export { registerProjectTools } from "./features/projects/register.js";
 export { ProjectsService } from "./features/projects/service.js";
+export { registerPredictionTools } from "./features/prediction/register.js";
+export { PredictionService } from "./features/prediction/service.js";
 export { createDatalineMcpServer } from "./mcp/server.js";
 export type { DatalineMcpServerOptions } from "./mcp/server.js";
 export { VERSION } from "./version.js";

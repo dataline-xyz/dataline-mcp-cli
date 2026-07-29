@@ -12,6 +12,8 @@ import { registerPerpetualTools } from "../features/perpetuals/register.js";
 import { PerpetualsService } from "../features/perpetuals/service.js";
 import { registerProjectTools } from "../features/projects/register.js";
 import { ProjectsService } from "../features/projects/service.js";
+import { registerPredictionTools } from "../features/prediction/register.js";
+import { PredictionService } from "../features/prediction/service.js";
 import { VERSION } from "../version.js";
 
 const MCP_INSTRUCTIONS = [
@@ -55,6 +57,7 @@ export function createDatalineMcpServer(options: DatalineMcpServerOptions): McpS
   registerPerpetualTools(server, new PerpetualsService(dataApiClient));
   registerProjectTools(server, new ProjectsService(dataApiClient));
   registerAnnouncementTools(server, new AnnouncementsService(dataApiClient));
+  registerPredictionTools(server, new PredictionService(dataApiClient));
 
   return server;
 }
