@@ -38,6 +38,7 @@ export function createCli(dependencies: CliDependencies = { stdout: process.stdo
           {
             authMode: config.authMode,
             dataApiUrl: config.dataApiUrl.toString(),
+            requestTimeoutMs: config.requestTimeoutMs,
           },
           null,
           2,

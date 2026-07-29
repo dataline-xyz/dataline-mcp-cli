@@ -6,6 +6,7 @@ import {
   loadRuntimeConfig,
   parseAuthMode,
   parseDataApiUrl,
+  parseRequestTimeoutMs,
 } from "../../src/config/runtime.js";
 
 describe("runtime config", () => {
@@ -14,6 +15,13 @@ describe("runtime config", () => {
 
     expect(config.authMode).toBe("oauth");
     expect(config.dataApiUrl.toString()).toBe("https://data-api.dataline.xyz/");
+    expect(config.requestTimeoutMs).toBe(30_000);
+  });
+
+  it("validates the upstream request timeout", () => {
+    expect(parseRequestTimeoutMs("15000")).toBe(15_000);
+    expect(() => parseRequestTimeoutMs("0")).toThrow("DATALINE_REQUEST_TIMEOUT_MS");
+    expect(() => parseRequestTimeoutMs("1.5")).toThrow("DATALINE_REQUEST_TIMEOUT_MS");
   });
 
   it("accepts each explicit authentication mode", () => {

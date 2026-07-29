@@ -62,10 +62,13 @@ For local development, replace the command with `node` and the arguments with th
 
 ## Configuration
 
-| Variable                | Default                         | Purpose                                             |
-| ----------------------- | ------------------------------- | --------------------------------------------------- |
-| `DATALINE_AUTH_MODE`    | `oauth`                         | Explicit access mode: `oauth`, `api_key`, or `x402` |
-| `DATALINE_DATA_API_URL` | `https://data-api.dataline.xyz` | Dataline Data API origin                            |
+| Variable                      | Default                         | Purpose                                             |
+| ----------------------------- | ------------------------------- | --------------------------------------------------- |
+| `DATALINE_AUTH_MODE`          | `oauth`                         | Explicit access mode: `oauth`, `api_key`, or `x402` |
+| `DATALINE_DATA_API_URL`       | `https://data-api.dataline.xyz` | Dataline Data API origin                            |
+| `DATALINE_REQUEST_TIMEOUT_MS` | `30000`                         | Upstream request timeout from 100 through 300000 ms |
+| `DATALINE_ACCESS_TOKEN`       | none                            | Development OAuth bearer-token override             |
+| `DATALINE_API_KEY`            | none                            | API key used when `DATALINE_AUTH_MODE=api_key`      |
 
 The client never silently falls back between access modes. OAuth tokens, API keys, and wallet
 material will live in a profile-aware credential store and must not be embedded in MCP configuration
@@ -77,7 +80,7 @@ The request behavior is intentionally simple:
 | ----------- | ----------------------------------------------------------------- |
 | `oauth`     | Bearer access token; no access-mode header                        |
 | `api_key`   | `X-Dataline-Key`; no access-mode header                           |
-| `x402`      | `X-Dataline-Access-Mode: x402` plus HTTP 402 challenge/sign/retry |
+| `x402`      | Planned: `X-Dataline-Access-Mode: x402` plus challenge/sign/retry |
 
 ## Architecture
 
@@ -101,7 +104,8 @@ See [Architecture](docs/architecture.md), [Authentication](docs/authentication.m
 - [x] CLI and stdio MCP entry points
 - [x] Protocol smoke test and CI
 - [ ] Shared credential profiles and OAuth login
-- [ ] API key and x402 HTTP clients
+- [x] Typed Data API client and API key request adapter
+- [ ] Profile-backed OAuth and x402 request adapters
 - [ ] Query tool and CLI command slices
 - [ ] Signed Base Sepolia end-to-end payment test
 

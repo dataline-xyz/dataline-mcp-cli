@@ -11,15 +11,18 @@ profile-aware credential store and refreshed by the shared HTTP client. MCP host
 remain blocked after login is complete, and the same login state will be reusable by CLI commands.
 
 OAuth requests send a bearer token to the Data API and omit `X-Dataline-Access-Mode`.
+`DATALINE_ACCESS_TOKEN` is available as a development override until profile login lands.
 
 ## API Key
 
-API key mode reads a key from the active credential profile, with an explicit environment override
-for automation. Requests send `X-Dataline-Key` and omit `X-Dataline-Access-Mode`.
+API key mode currently reads `DATALINE_API_KEY`. It will also read from the active credential
+profile when profile storage lands. Requests send `X-Dataline-Key` and omit
+`X-Dataline-Access-Mode`.
 
 ## x402
 
-x402 mode requires wallet configuration. Requests send:
+x402 mode is reserved but intentionally fails closed in the current release. Once implemented, it
+will require wallet configuration and requests will send:
 
 ```http
 X-Dataline-Access-Mode: x402
