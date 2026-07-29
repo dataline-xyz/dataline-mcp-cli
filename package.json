@@ -1,0 +1,79 @@
+{
+  "name": "@dataline/mcp",
+  "version": "0.1.0",
+  "description": "Local Dataline MCP server and CLI for market data.",
+  "type": "module",
+  "license": "Apache-2.0",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/dataline-xyz/dataline-mcp-cli.git"
+  },
+  "homepage": "https://github.com/dataline-xyz/dataline-mcp-cli#readme",
+  "bugs": {
+    "url": "https://github.com/dataline-xyz/dataline-mcp-cli/issues"
+  },
+  "keywords": [
+    "dataline",
+    "mcp",
+    "model-context-protocol",
+    "x402",
+    "crypto",
+    "market-data"
+  ],
+  "engines": {
+    "node": ">=20.11"
+  },
+  "bin": {
+    "dataline": "./dist/cli.js"
+  },
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    },
+    "./package.json": "./package.json"
+  },
+  "files": [
+    "dist",
+    "CHANGELOG.md",
+    "LICENSE",
+    "README.md"
+  ],
+  "publishConfig": {
+    "access": "public",
+    "provenance": true
+  },
+  "scripts": {
+    "build": "tsc -p tsconfig.build.json",
+    "check": "npm run format:check && npm run lint && npm run typecheck && npm run test && npm run build && npm run smoke:mcp && npm run pack:check",
+    "dev": "tsx src/cli.ts",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
+    "inspect": "npm run build && npx @modelcontextprotocol/inspector node dist/cli.js mcp serve",
+    "lint": "eslint .",
+    "pack:check": "node scripts/pack-check.mjs",
+    "prepack": "npm run build",
+    "smoke:mcp": "node scripts/smoke-mcp.mjs",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "1.29.0",
+    "commander": "^14.0.0",
+    "zod": "^4.0.0"
+  },
+  "devDependencies": {
+    "@eslint/js": "^9.0.0",
+    "@types/node": "^24.0.0",
+    "eslint": "^9.0.0",
+    "prettier": "^3.0.0",
+    "tsx": "^4.0.0",
+    "typescript": "^5.9.0",
+    "typescript-eslint": "^8.0.0",
+    "vitest": "^3.0.0"
+  },
+  "overrides": {
+    "@hono/node-server": "2.0.10"
+  }
+}
