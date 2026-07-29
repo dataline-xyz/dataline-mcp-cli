@@ -31,6 +31,8 @@ export type {
 } from "./data-api/types.js";
 export { registerCryptoTools } from "./features/crypto/register.js";
 export { CryptoService } from "./features/crypto/service.js";
+export { registerDefiPoolTools } from "./features/defi/register.js";
+export { DefiPoolsService } from "./features/defi/service.js";
 export { registerAnnouncementTools } from "./features/announcements/register.js";
 export { AnnouncementsService } from "./features/announcements/service.js";
 export { registerPerpetualTools } from "./features/perpetuals/register.js";

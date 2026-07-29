@@ -30,6 +30,8 @@ try {
     "get_exchange_announcement",
     "find_prediction_events",
     "get_prediction_event",
+    "list_defi_pools",
+    "search_defi_pools",
   ];
   const actualTools = tools.tools.map((tool) => tool.name);
   for (const tool of expectedTools) {

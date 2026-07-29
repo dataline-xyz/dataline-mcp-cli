@@ -109,6 +109,8 @@ services.
 | `get_exchange_announcement`     | Full content for one exchange announcement                |
 | `find_prediction_events`        | Browse Polymarket events by query, category, and ranking  |
 | `get_prediction_event`          | Event details with locally sorted and paged child markets |
+| `list_defi_pools`               | Browse and rank Base-chain DeFi pools                     |
+| `search_defi_pools`             | Find pools by address, token contract, symbol, or name    |
 
 See [Architecture](docs/architecture.md), [Authentication](docs/authentication.md), and
 [Development](docs/development.md) for the maintained design notes.
@@ -126,7 +128,9 @@ See [Architecture](docs/architecture.md), [Authentication](docs/authentication.m
 - [x] Perpetual snapshot and combined history MCP tools
 - [x] Crypto project and exchange announcement search/detail MCP tools
 - [x] Polymarket event search/detail MCP tools
-- [ ] Remaining query tools and matching CLI commands
+- [x] Base pool listing and cross-network DeFi pool search MCP tools
+- [x] Current pure query MCP tool set
+- [ ] Matching CLI data commands
 - [ ] Signed Base Sepolia end-to-end payment test
 
 Every paid MCP tool will map to one logical Data API operation. In x402 mode, the HTTP client may

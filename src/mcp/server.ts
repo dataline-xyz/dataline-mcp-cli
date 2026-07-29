@@ -8,6 +8,8 @@ import { registerAnnouncementTools } from "../features/announcements/register.js
 import { AnnouncementsService } from "../features/announcements/service.js";
 import { registerCryptoTools } from "../features/crypto/register.js";
 import { CryptoService } from "../features/crypto/service.js";
+import { registerDefiPoolTools } from "../features/defi/register.js";
+import { DefiPoolsService } from "../features/defi/service.js";
 import { registerPerpetualTools } from "../features/perpetuals/register.js";
 import { PerpetualsService } from "../features/perpetuals/service.js";
 import { registerProjectTools } from "../features/projects/register.js";
@@ -54,6 +56,7 @@ export function createDatalineMcpServer(options: DatalineMcpServerOptions): McpS
     });
 
   registerCryptoTools(server, new CryptoService(dataApiClient));
+  registerDefiPoolTools(server, new DefiPoolsService(dataApiClient));
   registerPerpetualTools(server, new PerpetualsService(dataApiClient));
   registerProjectTools(server, new ProjectsService(dataApiClient));
   registerAnnouncementTools(server, new AnnouncementsService(dataApiClient));

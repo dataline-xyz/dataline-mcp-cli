@@ -24,5 +24,7 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
   category enums, bounded detail fields, compact list records, and agent-correctable input errors.
 - Read-only Polymarket event search/detail tools with explicit category and sort enums, integer
   event IDs, slug-first lookup, and local child-market sorting/paging over one Data API response.
+- Read-only DeFi pool list/search tools with current Base DEX and sort enums, compact pool records,
+  explicit cross-network search semantics, and page continuation hints.
 - CI, package-content validation, contribution guidance, architecture notes, and security reporting
   policy.
