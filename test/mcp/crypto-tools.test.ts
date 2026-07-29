@@ -17,9 +17,10 @@ describe("crypto MCP tools", () => {
     const client = await connectedClient(fakeDataApiClient());
     const tools = await client.listTools();
 
+    const cryptoMarketTools = ["get_crypto_cex_price", "get_crypto_dex_price", "get_crypto_ohlcv"];
     expect(
-      tools.tools.map((tool) => tool.name).filter((name) => name.startsWith("get_crypto_")),
-    ).toEqual(["get_crypto_cex_price", "get_crypto_dex_price", "get_crypto_ohlcv"]);
+      tools.tools.map((tool) => tool.name).filter((name) => cryptoMarketTools.includes(name)),
+    ).toEqual(cryptoMarketTools);
     expect(tools.tools[0]?.annotations).toMatchObject({
       readOnlyHint: true,
       destructiveHint: false,

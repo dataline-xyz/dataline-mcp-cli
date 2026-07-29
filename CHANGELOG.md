@@ -20,5 +20,7 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 - Read-only perpetual snapshot and combined funding-rate/open-interest history tools with compact
   row-oriented series, explicit venue/interval enums, availability warnings, and actionable errors
   for unsupported metric and venue combinations.
+- Read-only crypto project and exchange announcement search/detail tools with explicit source and
+  category enums, bounded detail fields, compact list records, and agent-correctable input errors.
 - CI, package-content validation, contribution guidance, architecture notes, and security reporting
   policy.

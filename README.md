@@ -103,6 +103,10 @@ services.
 | `get_crypto_ohlcv`              | Historical candles from one venue                         |
 | `get_perpetual_metrics`         | Current funding, open interest, price, basis, and volume  |
 | `get_perpetual_metrics_history` | Funding-rate or open-interest history from a single venue |
+| `search_crypto_projects`        | Resolve a symbol or project name to a project ID          |
+| `get_crypto_project`            | Project fundamentals and metadata                         |
+| `find_exchange_announcements`   | Search exchange announcements with structured filters     |
+| `get_exchange_announcement`     | Full content for one exchange announcement                |
 
 See [Architecture](docs/architecture.md), [Authentication](docs/authentication.md), and
 [Development](docs/development.md) for the maintained design notes.
@@ -118,6 +122,7 @@ See [Architecture](docs/architecture.md), [Authentication](docs/authentication.m
 - [ ] Profile-backed OAuth and x402 request adapters
 - [x] Crypto price and OHLCV MCP tools
 - [x] Perpetual snapshot and combined history MCP tools
+- [x] Crypto project and exchange announcement search/detail MCP tools
 - [ ] Remaining query tools and matching CLI commands
 - [ ] Signed Base Sepolia end-to-end payment test
 

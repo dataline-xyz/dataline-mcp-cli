@@ -4,10 +4,14 @@ import { createEnvironmentCredentialProvider } from "../auth/credentials.js";
 import type { RuntimeConfig } from "../config/runtime.js";
 import { FetchDataApiClient } from "../data-api/fetch-client.js";
 import type { DataApiClient } from "../data-api/types.js";
+import { registerAnnouncementTools } from "../features/announcements/register.js";
+import { AnnouncementsService } from "../features/announcements/service.js";
 import { registerCryptoTools } from "../features/crypto/register.js";
 import { CryptoService } from "../features/crypto/service.js";
 import { registerPerpetualTools } from "../features/perpetuals/register.js";
 import { PerpetualsService } from "../features/perpetuals/service.js";
+import { registerProjectTools } from "../features/projects/register.js";
+import { ProjectsService } from "../features/projects/service.js";
 import { VERSION } from "../version.js";
 
 const MCP_INSTRUCTIONS = [
@@ -49,6 +53,8 @@ export function createDatalineMcpServer(options: DatalineMcpServerOptions): McpS
 
   registerCryptoTools(server, new CryptoService(dataApiClient));
   registerPerpetualTools(server, new PerpetualsService(dataApiClient));
+  registerProjectTools(server, new ProjectsService(dataApiClient));
+  registerAnnouncementTools(server, new AnnouncementsService(dataApiClient));
 
   return server;
 }

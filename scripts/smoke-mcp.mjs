@@ -24,6 +24,10 @@ try {
     "get_crypto_ohlcv",
     "get_perpetual_metrics",
     "get_perpetual_metrics_history",
+    "search_crypto_projects",
+    "get_crypto_project",
+    "find_exchange_announcements",
+    "get_exchange_announcement",
   ];
   const actualTools = tools.tools.map((tool) => tool.name);
   for (const tool of expectedTools) {
