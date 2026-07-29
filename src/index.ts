@@ -29,6 +29,8 @@ export type {
   QueryParameters,
   QueryValue,
 } from "./data-api/types.js";
+export { registerCryptoTools } from "./features/crypto/register.js";
+export { CryptoService } from "./features/crypto/service.js";
 export { createDatalineMcpServer } from "./mcp/server.js";
 export type { DatalineMcpServerOptions } from "./mcp/server.js";
 export { VERSION } from "./version.js";

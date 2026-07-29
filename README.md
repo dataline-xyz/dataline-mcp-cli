@@ -94,6 +94,14 @@ Feature code will be grouped by domain under `src/features/<feature>/`. MCP regi
 presentation stay thin; validation, upstream calls, and result shaping live in shared feature
 services.
 
+## Available Tools
+
+| Tool                   | Purpose                                           |
+| ---------------------- | ------------------------------------------------- |
+| `get_crypto_cex_price` | Current ticker price across centralized exchanges |
+| `get_crypto_dex_price` | Current token price by chain and contract address |
+| `get_crypto_ohlcv`     | Historical candles from one venue                 |
+
 See [Architecture](docs/architecture.md), [Authentication](docs/authentication.md), and
 [Development](docs/development.md) for the maintained design notes.
 
@@ -106,7 +114,8 @@ See [Architecture](docs/architecture.md), [Authentication](docs/authentication.m
 - [ ] Shared credential profiles and OAuth login
 - [x] Typed Data API client and API key request adapter
 - [ ] Profile-backed OAuth and x402 request adapters
-- [ ] Query tool and CLI command slices
+- [x] Crypto price and OHLCV MCP tools
+- [ ] Remaining query tools and matching CLI commands
 - [ ] Signed Base Sepolia end-to-end payment test
 
 Every paid MCP tool will map to one logical Data API operation. In x402 mode, the HTTP client may

@@ -17,7 +17,18 @@ try {
     throw new Error(`Unexpected MCP server: ${JSON.stringify(server)}`);
   }
 
-  process.stderr.write(`MCP smoke passed (${server.name} ${server.version}).\n`);
+  const tools = await client.listTools();
+  const expectedTools = ["get_crypto_cex_price", "get_crypto_dex_price", "get_crypto_ohlcv"];
+  const actualTools = tools.tools.map((tool) => tool.name);
+  for (const tool of expectedTools) {
+    if (!actualTools.includes(tool)) {
+      throw new Error(`Missing MCP tool ${tool}: ${JSON.stringify(actualTools)}`);
+    }
+  }
+
+  process.stderr.write(
+    `MCP smoke passed (${server.name} ${server.version}, ${actualTools.length} tools).\n`,
+  );
 } finally {
   await client.close();
 }

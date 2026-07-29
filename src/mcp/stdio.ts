@@ -3,8 +3,11 @@ import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js"
 import type { RuntimeConfig } from "../config/runtime.js";
 import { createDatalineMcpServer } from "./server.js";
 
-export async function serveStdio(config: RuntimeConfig): Promise<void> {
-  const server = createDatalineMcpServer({ config });
+export async function serveStdio(
+  config: RuntimeConfig,
+  env: NodeJS.ProcessEnv = process.env,
+): Promise<void> {
+  const server = createDatalineMcpServer({ config, env });
   const transport = new StdioServerTransport();
   let closing = false;
 

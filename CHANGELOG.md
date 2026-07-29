@@ -15,5 +15,7 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 - Typed Data API fetch client with explicit credential injection, bounded responses, timeout
   handling, repeated query parameters, partial-result warnings, and compact structured errors.
 - Development OAuth-token and API-key environment adapters with fail-closed mode selection.
+- Read-only CEX price, DEX contract-price, and OHLCV MCP tools with explicit input/output schemas,
+  compact structured results, chain alias normalization, and liquidity/volume/change warnings.
 - CI, package-content validation, contribution guidance, architecture notes, and security reporting
   policy.

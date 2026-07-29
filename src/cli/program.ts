@@ -23,7 +23,7 @@ export function createCli(dependencies: CliDependencies = { stdout: process.stdo
     .command("serve", { isDefault: true })
     .description("Serve MCP over stdio.")
     .action(async () => {
-      await serveStdio(loadRuntimeConfig(env));
+      await serveStdio(loadRuntimeConfig(env), env);
     });
 
   program
