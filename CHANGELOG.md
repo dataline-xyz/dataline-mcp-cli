@@ -28,3 +28,4 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
   explicit cross-network search semantics, and page continuation hints.
 - CI, package-content validation, contribution guidance, architecture notes, and security reporting
   policy.
+- MCP Registry metadata and npm trusted-publishing release automation.

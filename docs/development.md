@@ -19,7 +19,7 @@ slice contains:
 
 - `schema.ts`: public inputs, outputs, enums, and compact result types;
 - `service.ts`: use-case logic and Data API mapping;
-- `mcp.ts`: thin MCP registration;
+- `register.ts`: thin MCP registration;
 - `cli.ts`: thin CLI registration when a direct command is useful.
 
 Tests should cover the service contract and MCP descriptor. When a Data API contract changes, update
@@ -40,6 +40,12 @@ Before opening a pull request:
 The npm package follows SemVer. Removing or renaming a tool, changing parameter meaning, tightening
 accepted values, or changing an output field type is a breaking contract change. Additive optional
 fields and new tools are normally minor changes.
+
+## Releasing
+
+Release automation publishes the package to npm and its metadata to the MCP Registry. Before the
+first release, configure `release.yml` as the trusted publisher for `@dataline/mcp` on npm. A GitHub
+release tag must exactly match the package version, for example `v0.1.0`.
 
 ## Dependency Note
 

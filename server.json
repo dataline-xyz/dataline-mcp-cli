@@ -1,0 +1,50 @@
+{
+  "$schema": "https://static.modelcontextprotocol.io/schemas/2025-12-11/server.schema.json",
+  "name": "io.github.dataline-xyz/dataline",
+  "title": "Dataline",
+  "description": "Read-only market data tools for crypto, derivatives, prediction markets, and DeFi.",
+  "repository": {
+    "url": "https://github.com/dataline-xyz/dataline-mcp-cli",
+    "source": "github"
+  },
+  "version": "0.1.0",
+  "packages": [
+    {
+      "registryType": "npm",
+      "registryBaseUrl": "https://registry.npmjs.org",
+      "identifier": "@dataline/mcp",
+      "version": "0.1.0",
+      "transport": {
+        "type": "stdio"
+      },
+      "packageArguments": [
+        {
+          "type": "positional",
+          "value": "mcp"
+        },
+        {
+          "type": "positional",
+          "value": "serve"
+        }
+      ],
+      "environmentVariables": [
+        {
+          "name": "DATALINE_AUTH_MODE",
+          "description": "Authentication mode for this installation.",
+          "default": "api_key"
+        },
+        {
+          "name": "DATALINE_API_KEY",
+          "description": "Dataline API key.",
+          "isRequired": true,
+          "isSecret": true
+        },
+        {
+          "name": "DATALINE_DATA_API_URL",
+          "description": "Dataline Data API origin.",
+          "default": "https://data-api.dataline.xyz"
+        }
+      ]
+    }
+  ]
+}

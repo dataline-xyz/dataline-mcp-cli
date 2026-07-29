@@ -1,9 +1,11 @@
 {
   "name": "@dataline/mcp",
   "version": "0.1.0",
-  "description": "Local Dataline MCP server and CLI for market data.",
+  "description": "Local MCP server and CLI for Dataline market data.",
+  "mcpName": "io.github.dataline-xyz/dataline",
   "type": "module",
   "license": "Apache-2.0",
+  "author": "Dataline",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/dataline-xyz/dataline-mcp-cli.git"
@@ -23,6 +25,9 @@
   "engines": {
     "node": ">=20.11"
   },
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "sideEffects": false,
   "bin": {
     "dataline": "./dist/cli.js"
   },
@@ -37,7 +42,8 @@
     "dist",
     "CHANGELOG.md",
     "LICENSE",
-    "README.md"
+    "README.md",
+    "server.json"
   ],
   "publishConfig": {
     "access": "public",
@@ -45,7 +51,7 @@
   },
   "scripts": {
     "build": "tsc -p tsconfig.build.json",
-    "check": "npm run format:check && npm run lint && npm run typecheck && npm run test && npm run build && npm run smoke:mcp && npm run pack:check",
+    "check": "npm run format:check && npm run lint && npm run typecheck && npm run test && npm run build && npm run smoke:mcp && npm run release:check && npm run pack:check",
     "dev": "tsx src/cli.ts",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
@@ -53,6 +59,7 @@
     "lint": "eslint .",
     "pack:check": "node scripts/pack-check.mjs",
     "prepack": "npm run build",
+    "release:check": "node scripts/verify-release.mjs",
     "smoke:mcp": "node scripts/smoke-mcp.mjs",
     "test": "vitest run",
     "test:watch": "vitest",

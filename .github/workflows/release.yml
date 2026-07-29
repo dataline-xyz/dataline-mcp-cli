@@ -1,0 +1,43 @@
+name: Release
+
+on:
+  release:
+    types: [published]
+
+permissions:
+  contents: read
+  id-token: write
+
+env:
+  MCP_PUBLISHER_VERSION: v1.7.9
+  MCP_PUBLISHER_SHA256: ab128162b0616090b47cf245afe0a23f3ef08936fdce19074f5ba0a4469281ac
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-node@v6
+        with:
+          node-version: 24
+          registry-url: https://registry.npmjs.org
+          package-manager-cache: false
+      - name: Use an npm version with trusted publishing support
+        run: npm install --global npm@11.5.1
+      - name: Verify release tag
+        env:
+          RELEASE_TAG: ${{ github.event.release.tag_name }}
+        run: npm run release:check
+      - run: npm ci
+      - run: npm run check
+      - run: npm publish
+      - name: Install MCP publisher
+        run: |
+          curl --fail --location --silent --show-error \
+            "https://github.com/modelcontextprotocol/registry/releases/download/${MCP_PUBLISHER_VERSION}/mcp-publisher_linux_amd64.tar.gz" \
+            --output /tmp/mcp-publisher.tar.gz
+          echo "${MCP_PUBLISHER_SHA256}  /tmp/mcp-publisher.tar.gz" | sha256sum --check
+          tar -xzf /tmp/mcp-publisher.tar.gz mcp-publisher
+      - run: ./mcp-publisher login github-oidc
+      - run: ./mcp-publisher publish
