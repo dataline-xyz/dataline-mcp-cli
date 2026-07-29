@@ -1,5 +1,17 @@
 import { DataApiError } from "../data-api/error.js";
 
+export class ToolInputError extends Error {
+  readonly code: string;
+  readonly hint: string;
+
+  constructor(code: string, message: string, hint = "fix_arguments") {
+    super(message);
+    this.name = "ToolInputError";
+    this.code = code;
+    this.hint = hint;
+  }
+}
+
 export async function runTool<T extends object>(operation: () => Promise<T>) {
   try {
     const structuredContent = await operation();
@@ -17,6 +29,14 @@ export async function runTool<T extends object>(operation: () => Promise<T>) {
 }
 
 function publicToolError(error: unknown): Record<string, unknown> {
+  if (error instanceof ToolInputError) {
+    return {
+      code: error.code,
+      message: error.message,
+      retryable: false,
+      agent_action_hint: error.hint,
+    };
+  }
   if (error instanceof DataApiError) {
     return {
       code: error.code,

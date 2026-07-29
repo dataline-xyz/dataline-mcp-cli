@@ -6,6 +6,8 @@ import { FetchDataApiClient } from "../data-api/fetch-client.js";
 import type { DataApiClient } from "../data-api/types.js";
 import { registerCryptoTools } from "../features/crypto/register.js";
 import { CryptoService } from "../features/crypto/service.js";
+import { registerPerpetualTools } from "../features/perpetuals/register.js";
+import { PerpetualsService } from "../features/perpetuals/service.js";
 import { VERSION } from "../version.js";
 
 const MCP_INSTRUCTIONS = [
@@ -46,6 +48,7 @@ export function createDatalineMcpServer(options: DatalineMcpServerOptions): McpS
     });
 
   registerCryptoTools(server, new CryptoService(dataApiClient));
+  registerPerpetualTools(server, new PerpetualsService(dataApiClient));
 
   return server;
 }

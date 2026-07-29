@@ -31,6 +31,8 @@ export type {
 } from "./data-api/types.js";
 export { registerCryptoTools } from "./features/crypto/register.js";
 export { CryptoService } from "./features/crypto/service.js";
+export { registerPerpetualTools } from "./features/perpetuals/register.js";
+export { PerpetualsService } from "./features/perpetuals/service.js";
 export { createDatalineMcpServer } from "./mcp/server.js";
 export type { DatalineMcpServerOptions } from "./mcp/server.js";
 export { VERSION } from "./version.js";

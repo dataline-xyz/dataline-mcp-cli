@@ -18,7 +18,13 @@ try {
   }
 
   const tools = await client.listTools();
-  const expectedTools = ["get_crypto_cex_price", "get_crypto_dex_price", "get_crypto_ohlcv"];
+  const expectedTools = [
+    "get_crypto_cex_price",
+    "get_crypto_dex_price",
+    "get_crypto_ohlcv",
+    "get_perpetual_metrics",
+    "get_perpetual_metrics_history",
+  ];
   const actualTools = tools.tools.map((tool) => tool.name);
   for (const tool of expectedTools) {
     if (!actualTools.includes(tool)) {

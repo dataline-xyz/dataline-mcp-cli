@@ -17,5 +17,8 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 - Development OAuth-token and API-key environment adapters with fail-closed mode selection.
 - Read-only CEX price, DEX contract-price, and OHLCV MCP tools with explicit input/output schemas,
   compact structured results, chain alias normalization, and liquidity/volume/change warnings.
+- Read-only perpetual snapshot and combined funding-rate/open-interest history tools with compact
+  row-oriented series, explicit venue/interval enums, availability warnings, and actionable errors
+  for unsupported metric and venue combinations.
 - CI, package-content validation, contribution guidance, architecture notes, and security reporting
   policy.
