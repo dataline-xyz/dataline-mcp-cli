@@ -27,6 +27,7 @@ export interface OAuthTokenClient {
 export interface FetchOAuthTokenClientOptions {
   tokenEndpoint: URL;
   clientId: string;
+  resource?: string;
   timeoutMs: number;
   fetch?: typeof globalThis.fetch;
   now?: () => number;
@@ -42,6 +43,7 @@ export class OAuthTokenRequestError extends AccessAdapterError {
 export class FetchOAuthTokenClient implements OAuthTokenClient {
   readonly #tokenEndpoint: URL;
   readonly #clientId: string;
+  readonly #resource: string | undefined;
   readonly #timeoutMs: number;
   readonly #fetch: typeof globalThis.fetch;
   readonly #now: () => number;
@@ -49,6 +51,9 @@ export class FetchOAuthTokenClient implements OAuthTokenClient {
   constructor(options: FetchOAuthTokenClientOptions) {
     this.#tokenEndpoint = new URL(options.tokenEndpoint);
     this.#clientId = requireValue(options.clientId, "OAuth client ID");
+    this.#resource = options.resource
+      ? requireValue(options.resource, "OAuth resource")
+      : undefined;
     this.#timeoutMs = options.timeoutMs;
     this.#fetch = options.fetch ?? globalThis.fetch;
     this.#now = options.now ?? Date.now;
@@ -60,7 +65,32 @@ export class FetchOAuthTokenClient implements OAuthTokenClient {
       refresh_token: requireValue(refreshToken, "OAuth refresh token"),
       client_id: this.#clientId,
     });
+    if (this.#resource) {
+      body.set("resource", this.#resource);
+    }
 
+    return this.#requestToken(body);
+  }
+
+  exchangeAuthorizationCode(options: {
+    code: string;
+    codeVerifier: string;
+    redirectUri: string;
+  }): Promise<OAuthRefreshResult> {
+    const body = new URLSearchParams({
+      grant_type: "authorization_code",
+      client_id: this.#clientId,
+      redirect_uri: requireValue(options.redirectUri, "OAuth redirect URI"),
+      code: requireValue(options.code, "OAuth authorization code"),
+      code_verifier: requireValue(options.codeVerifier, "PKCE verifier"),
+    });
+    if (this.#resource) {
+      body.set("resource", this.#resource);
+    }
+    return this.#requestToken(body);
+  }
+
+  async #requestToken(body: URLSearchParams): Promise<OAuthRefreshResult> {
     let response: Response;
     try {
       response = await this.#fetch(this.#tokenEndpoint, {
@@ -83,7 +113,7 @@ export class FetchOAuthTokenClient implements OAuthTokenClient {
     if (!response.ok) {
       throw new OAuthTokenRequestError(
         oauthErrorCode(payload),
-        "The OAuth token endpoint rejected the refresh request.",
+        "The OAuth token endpoint rejected the token request.",
         response.status,
       );
     }

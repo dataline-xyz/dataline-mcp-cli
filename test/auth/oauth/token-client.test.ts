@@ -41,8 +41,38 @@ describe("FetchOAuthTokenClient", () => {
     await expect(createClient(fetch).refresh("refresh-old")).rejects.toMatchObject({
       code: "oauth_invalid_grant",
       status: 400,
-      message: "The OAuth token endpoint rejected the refresh request.",
+      message: "The OAuth token endpoint rejected the token request.",
     });
+  });
+
+  it("exchanges an authorization code with PKCE and a bound resource", async () => {
+    const fetch = vi.fn<typeof globalThis.fetch>().mockResolvedValue(
+      jsonResponse({
+        access_token: "access-new",
+        refresh_token: "refresh-new",
+        expires_in: 3600,
+        token_type: "Bearer",
+        scope: "data.*.read",
+      }),
+    );
+    const client = new FetchOAuthTokenClient({
+      tokenEndpoint: new URL("https://control.example/oauth/token"),
+      clientId: "dataline-cli",
+      resource: "https://data-api.example",
+      timeoutMs: 1_000,
+      fetch,
+      now: () => 1_000_000,
+    });
+
+    await client.exchangeAuthorizationCode({
+      code: "authorization-code",
+      codeVerifier: "a".repeat(64),
+      redirectUri: "http://127.0.0.1:49152/callback",
+    });
+
+    expect((fetch.mock.calls[0]?.[1]?.body as URLSearchParams).toString()).toBe(
+      "grant_type=authorization_code&client_id=dataline-cli&redirect_uri=http%3A%2F%2F127.0.0.1%3A49152%2Fcallback&code=authorization-code&code_verifier=aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa&resource=https%3A%2F%2Fdata-api.example",
+    );
   });
 });
 

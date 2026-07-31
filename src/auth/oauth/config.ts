@@ -7,15 +7,22 @@ export interface OAuthRuntimeConfig {
   resource: string;
 }
 
+export interface OAuthRuntimeDefaults {
+  issuer?: string;
+  scope?: string;
+  resource?: string;
+}
+
 export function loadOAuthRuntimeConfig(
   dataApiUrl: URL,
   env: NodeJS.ProcessEnv = process.env,
+  defaults: OAuthRuntimeDefaults = {},
 ): OAuthRuntimeConfig {
   return {
-    issuer: parseOAuthIssuer(env.DATALINE_OAUTH_ISSUER),
-    scope: parseOAuthScope(env.DATALINE_OAUTH_SCOPE),
+    issuer: parseOAuthIssuer(env.DATALINE_OAUTH_ISSUER ?? defaults.issuer),
+    scope: parseOAuthScope(env.DATALINE_OAUTH_SCOPE ?? defaults.scope),
     resource: parseOAuthResource(
-      env.DATALINE_OAUTH_RESOURCE ?? normalizedDataApiResource(dataApiUrl),
+      env.DATALINE_OAUTH_RESOURCE ?? defaults.resource ?? normalizedDataApiResource(dataApiUrl),
     ),
   };
 }

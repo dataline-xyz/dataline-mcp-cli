@@ -94,6 +94,7 @@ export class OAuthTokenManager {
         : tokens.scope
           ? { scope: tokens.scope }
           : {}),
+      ...(tokens.client ? { client: tokens.client } : {}),
     };
     await this.#secretStore.setOAuth(this.#profileName, nextTokens);
     return nextTokens;

@@ -9,6 +9,9 @@ const profileSettingsSchema = z
     authMode: z.enum(AUTH_MODES).optional(),
     dataApiUrl: z.string().min(1).optional(),
     requestTimeoutMs: z.number().int().min(100).max(300_000).optional(),
+    oauthIssuer: z.string().min(1).optional(),
+    oauthScope: z.string().min(1).optional(),
+    oauthResource: z.string().min(1).optional(),
   })
   .strict();
 const profileDocumentSchema = z

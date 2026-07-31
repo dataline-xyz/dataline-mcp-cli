@@ -3,9 +3,10 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { Readable } from "node:stream";
 
-import { afterEach, beforeEach, describe, expect, it } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
-import { createCli } from "../../src/cli/program.js";
+import type { OAuthLoginOptions, OAuthLoginResult } from "../../src/auth/oauth/login.js";
+import { createCli, type CliDependencies } from "../../src/cli/program.js";
 
 describe("CLI", () => {
   let configDirectory: string;
@@ -26,9 +27,66 @@ describe("CLI", () => {
       authMode: "oauth",
       dataApiUrl: "https://data-api.dataline.xyz/",
       requestTimeoutMs: 30_000,
+      oauth: {
+        issuer: "https://control-api.dataline.xyz/",
+        scope: "data.*.read",
+        resource: "https://data-api.dataline.xyz",
+      },
     });
     expect(output).not.toContain("token");
     expect(output).not.toContain("privateKey");
+  });
+
+  it("runs OAuth login without exposing credentials in command output", async () => {
+    let output = "";
+    let errorOutput = "";
+    const oauthLogin: NonNullable<CliDependencies["oauthLogin"]> = vi.fn(
+      (options: OAuthLoginOptions): Promise<OAuthLoginResult> => {
+        options.onAuthorizationUrl?.(
+          new URL("https://control.example/oauth/authorize?state=redacted"),
+        );
+        return Promise.resolve({
+          expiresAt: 1_700_003_600_000,
+          scope: ["data.*.read"],
+          browserOpened: false,
+        });
+      },
+    );
+    const program = createCli({
+      env: { DATALINE_CONFIG_HOME: configDirectory },
+      stdout: {
+        write(chunk) {
+          output += String(chunk);
+          return true;
+        },
+      },
+      stderr: {
+        write(chunk) {
+          errorOutput += String(chunk);
+          return true;
+        },
+      },
+      oauthLogin,
+    });
+
+    await program.parseAsync(["node", "dataline", "auth", "login", "--no-open", "--port", "0"]);
+
+    expect(JSON.parse(output)).toEqual({
+      profile: "default",
+      authMode: "oauth",
+      authenticated: true,
+      expiresAt: 1_700_003_600_000,
+      scope: ["data.*.read"],
+      browserOpened: false,
+    });
+    expect(errorOutput).toContain("https://control.example/oauth/authorize");
+    expect(oauthLogin).toHaveBeenCalledWith(
+      expect.objectContaining({
+        callbackPort: 0,
+        callbackTimeoutMs: 300_000,
+        launchBrowser: false,
+      }),
+    );
   });
 
   it("shares profile and API key state across CLI processes", async () => {

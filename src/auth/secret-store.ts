@@ -10,6 +10,16 @@ const oauthTokenSetSchema = z
     expiresAt: z.number().int().positive(),
     tokenType: z.literal("Bearer"),
     scope: z.array(z.string().min(1)).optional(),
+    client: z
+      .object({
+        issuer: z.url(),
+        clientId: z.string().min(1),
+        tokenEndpoint: z.url(),
+        revocationEndpoint: z.url().optional(),
+        resource: z.string().min(1).max(512),
+      })
+      .strict()
+      .optional(),
   })
   .strict();
 const profileSecretsSchema = z
