@@ -6,18 +6,35 @@ automatic fallback to another credential or to a paid request.
 ## OAuth
 
 OAuth will use Authorization Code with PKCE. `dataline auth login` will open a browser and
-temporarily listen on a loopback callback. Tokens will be stored in an operating-system-backed,
-profile-aware credential store and refreshed by the shared HTTP client. MCP hosts do not need to
-remain blocked after login is complete, and the same login state will be reusable by CLI commands.
+temporarily listen on a loopback callback. Tokens will use the profile-aware private credential file
+and be refreshed by the shared HTTP client. MCP hosts do not need to remain blocked after login is
+complete, and the same login state will be reusable by CLI commands.
 
 OAuth requests send a bearer token to the Data API and omit `X-Dataline-Access-Mode`.
 `DATALINE_ACCESS_TOKEN` is available as a development override until profile login lands.
 
 ## API Key
 
-API key mode currently reads `DATALINE_API_KEY`. It will also read from the active credential
-profile when profile storage lands. Requests send `X-Dataline-Key` and omit
-`X-Dataline-Access-Mode`.
+API key mode reads from `DATALINE_API_KEY` first, then from the active local profile. Import a key
+without putting it in process arguments:
+
+```bash
+dataline profile set work --auth-mode api_key
+dataline profile use work
+printf '%s' "$DATALINE_API_KEY" | dataline auth set-api-key --stdin
+```
+
+Requests send `X-Dataline-Key` and omit `X-Dataline-Access-Mode`.
+
+## Profiles
+
+Profiles keep non-secret runtime settings separate from credentials. `DATALINE_PROFILE` selects a
+profile for one process; otherwise the active profile is used. Environment variables override both.
+
+By default, files live under the platform config directory in `dataline/profiles.json` and
+`dataline/credentials.json`. `DATALINE_CONFIG_HOME` overrides this directory. Directories are
+written with mode `0700` and files with mode `0600`. Private keys are never persisted in these
+files.
 
 ## x402
 

@@ -7,7 +7,7 @@ configuration.
 ## Requirements
 
 - Node.js 20 or newer
-- A Dataline API key
+- Dataline credentials for the selected authentication mode
 
 ## Quick Start
 
@@ -37,11 +37,24 @@ Credentials stay in the local MCP process and are sent only to the configured Da
 | `DATALINE_AUTH_MODE`          | `oauth`                         | `oauth`, `api_key`, or `x402`    |
 | `DATALINE_API_KEY`            | none                            | Required for `api_key` mode      |
 | `DATALINE_ACCESS_TOKEN`       | none                            | Development token for OAuth mode |
+| `DATALINE_PROFILE`            | active profile                  | Named local profile              |
+| `DATALINE_CONFIG_HOME`        | platform config directory       | Override local profile storage   |
 | `DATALINE_DATA_API_URL`       | `https://data-api.dataline.xyz` | Data API origin                  |
 | `DATALINE_REQUEST_TIMEOUT_MS` | `30000`                         | Upstream timeout in milliseconds |
 
-The current release supports API keys and development OAuth tokens. Interactive OAuth login and x402
-payment are not yet available. Authentication modes are explicit and never fall back silently.
+Environment variables override profile settings and credentials. To keep an API key out of MCP
+configuration, create a local profile and import the key through stdin:
+
+```bash
+dataline profile set work --auth-mode api_key
+dataline profile use work
+printf '%s' "$DATALINE_API_KEY" | dataline auth set-api-key --stdin
+dataline auth status
+```
+
+The current release supports stored API keys and development OAuth tokens. Interactive OAuth login
+and x402 payment are not yet available. Authentication modes are explicit and never fall back
+silently.
 
 ## Tools
 

@@ -1,6 +1,9 @@
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 
-import { createEnvironmentCredentialProvider } from "../auth/credentials.js";
+import {
+  createEnvironmentCredentialProvider,
+  type CredentialProvider,
+} from "../auth/credentials.js";
 import type { RuntimeConfig } from "../config/runtime.js";
 import { FetchDataApiClient } from "../data-api/fetch-client.js";
 import type { DataApiClient } from "../data-api/types.js";
@@ -28,6 +31,7 @@ export interface DatalineMcpServerOptions {
   config: RuntimeConfig;
   version?: string;
   dataApiClient?: DataApiClient;
+  credentialProvider?: CredentialProvider;
   env?: NodeJS.ProcessEnv;
 }
 
@@ -47,10 +51,9 @@ export function createDatalineMcpServer(options: DatalineMcpServerOptions): McpS
     options.dataApiClient ??
     new FetchDataApiClient({
       baseUrl: options.config.dataApiUrl,
-      credentialProvider: createEnvironmentCredentialProvider(
-        options.config.authMode,
-        options.env ?? process.env,
-      ),
+      credentialProvider:
+        options.credentialProvider ??
+        createEnvironmentCredentialProvider(options.config.authMode, options.env ?? process.env),
       timeoutMs: options.config.requestTimeoutMs,
       version,
     });

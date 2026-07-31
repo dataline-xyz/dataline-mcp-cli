@@ -11,13 +11,23 @@ export {
   parseRequestTimeoutMs,
 } from "./config/runtime.js";
 export type { AuthMode, RuntimeConfig } from "./config/runtime.js";
+export { FileProfileStore, validateProfileName } from "./config/profile-store.js";
+export type { ProfileSettings, ProfileStore, ProfileSummary } from "./config/profile-store.js";
+export { resolveDatalinePaths } from "./config/paths.js";
+export type { DatalinePaths } from "./config/paths.js";
+export { resolveRuntimeContext } from "./config/resolve.js";
+export type { RuntimeContext, RuntimeContextOptions } from "./config/resolve.js";
 export {
   API_KEY_HEADER,
   CredentialUnavailableError,
   createEnvironmentCredentialProvider,
+  createProfileCredentialProvider,
   credentialHeaders,
+  inspectCredential,
 } from "./auth/credentials.js";
-export type { CredentialProvider } from "./auth/credentials.js";
+export type { CredentialProvider, CredentialSource, CredentialStatus } from "./auth/credentials.js";
+export { FileSecretStore } from "./auth/secret-store.js";
+export type { OAuthTokenSet, ProfileSecrets, SecretStore } from "./auth/secret-store.js";
 export { DataApiError } from "./data-api/error.js";
 export { FetchDataApiClient, buildUrl } from "./data-api/fetch-client.js";
 export type { FetchDataApiClientOptions } from "./data-api/fetch-client.js";

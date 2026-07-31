@@ -12,11 +12,23 @@ export interface RuntimeConfig {
   requestTimeoutMs: number;
 }
 
-export function loadRuntimeConfig(env: NodeJS.ProcessEnv = process.env): RuntimeConfig {
+export interface RuntimeDefaults {
+  authMode?: AuthMode;
+  dataApiUrl?: string;
+  requestTimeoutMs?: number;
+}
+
+export function loadRuntimeConfig(
+  env: NodeJS.ProcessEnv = process.env,
+  defaults: RuntimeDefaults = {},
+): RuntimeConfig {
   return {
-    authMode: parseAuthMode(env.DATALINE_AUTH_MODE),
-    dataApiUrl: parseDataApiUrl(env.DATALINE_DATA_API_URL),
-    requestTimeoutMs: parseRequestTimeoutMs(env.DATALINE_REQUEST_TIMEOUT_MS),
+    authMode: parseAuthMode(env.DATALINE_AUTH_MODE ?? defaults.authMode),
+    dataApiUrl: parseDataApiUrl(env.DATALINE_DATA_API_URL ?? defaults.dataApiUrl),
+    requestTimeoutMs: parseRequestTimeoutMs(
+      env.DATALINE_REQUEST_TIMEOUT_MS ??
+        (defaults.requestTimeoutMs === undefined ? undefined : String(defaults.requestTimeoutMs)),
+    ),
   };
 }
 
