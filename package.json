@@ -69,7 +69,7 @@
     "@modelcontextprotocol/sdk": "1.29.0",
     "@x402/evm": "2.20.0",
     "@x402/fetch": "2.20.0",
-    "commander": "^14.0.0",
+    "commander": "^15.0.0",
     "viem": "2.55.10",
     "zod": "^4.0.0"
   },
