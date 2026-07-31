@@ -1,7 +1,7 @@
 import { randomUUID } from "node:crypto";
 
 import type { CredentialProvider } from "../auth/credentials.js";
-import { CredentialUnavailableError } from "../auth/credentials.js";
+import { AccessAdapterError } from "../auth/error.js";
 import { DataApiError } from "./error.js";
 import type {
   DataApiClient,
@@ -58,55 +58,12 @@ export class FetchDataApiClient implements DataApiClient {
   async #request<T>(request: DataApiRequest): Promise<DataApiResult<T>> {
     const requestId = randomUUID();
     const url = buildUrl(this.#baseUrl, request.path, request.query);
-    let credentialHeaders: Readonly<Record<string, string>>;
-
-    try {
-      credentialHeaders = await this.#credentialProvider.getHeaders();
-    } catch (error) {
-      if (error instanceof CredentialUnavailableError) {
-        throw new DataApiError({
-          code: error.code,
-          message: error.message,
-          retryable: false,
-          cause: error,
-        });
-      }
-      throw error;
-    }
-
-    const headers = new Headers({
-      Accept: "application/json",
-      "User-Agent": `${CLIENT_NAME}/${this.#version}`,
-      "X-Dataline-Client": "local-mcp",
-      "X-Request-Id": requestId,
-      ...credentialHeaders,
-    });
     let body: string | undefined;
     if (request.body !== undefined) {
-      headers.set("Content-Type", "application/json");
       body = JSON.stringify(request.body);
     }
 
-    let response: Response;
-    try {
-      response = await this.#fetch(url, {
-        method: request.method,
-        headers,
-        ...(body === undefined ? {} : { body }),
-        signal: AbortSignal.timeout(this.#timeoutMs),
-      });
-    } catch (error) {
-      const timedOut = isTimeoutError(error);
-      throw new DataApiError({
-        code: timedOut ? "dataline_api_timeout" : "dataline_api_unreachable",
-        message: timedOut
-          ? "Dataline Data API did not respond before the request timeout."
-          : "Dataline Data API could not be reached.",
-        retryable: true,
-        requestId,
-        cause: error,
-      });
-    }
+    const response = await this.#sendWithAuthRecovery(url, request.method, body, requestId);
 
     const upstreamRequestId = response.headers.get("x-request-id") ?? requestId;
     const payload = await readJson(response, this.#maxResponseBytes, upstreamRequestId);
@@ -132,6 +89,100 @@ export class FetchDataApiClient implements DataApiClient {
       requestId: upstreamRequestId,
     };
   }
+
+  async #sendWithAuthRecovery(
+    url: URL,
+    method: DataApiRequest["method"],
+    body: string | undefined,
+    requestId: string,
+  ): Promise<Response> {
+    let credentialHeaders = await this.#credentialHeaders();
+    let response = await this.#send(url, method, body, requestId, credentialHeaders);
+
+    if (response.status !== 401 || !this.#credentialProvider.recoverFromUnauthorized) {
+      return response;
+    }
+
+    const recovered = await this.#recoverFromUnauthorized(credentialHeaders);
+    if (!recovered) {
+      return response;
+    }
+
+    await response.body?.cancel();
+    credentialHeaders = await this.#credentialHeaders();
+    response = await this.#send(url, method, body, requestId, credentialHeaders);
+    return response;
+  }
+
+  async #credentialHeaders(): Promise<Readonly<Record<string, string>>> {
+    try {
+      return await this.#credentialProvider.getHeaders();
+    } catch (error) {
+      throw accessAdapterError(error);
+    }
+  }
+
+  async #recoverFromUnauthorized(
+    rejectedHeaders: Readonly<Record<string, string>>,
+  ): Promise<boolean> {
+    try {
+      return await this.#credentialProvider.recoverFromUnauthorized!(rejectedHeaders);
+    } catch (error) {
+      throw accessAdapterError(error);
+    }
+  }
+
+  async #send(
+    url: URL,
+    method: DataApiRequest["method"],
+    body: string | undefined,
+    requestId: string,
+    credentialHeaders: Readonly<Record<string, string>>,
+  ): Promise<Response> {
+    const headers = new Headers({
+      Accept: "application/json",
+      "User-Agent": `${CLIENT_NAME}/${this.#version}`,
+      "X-Dataline-Client": "local-mcp",
+      "X-Request-Id": requestId,
+      ...credentialHeaders,
+    });
+    if (body !== undefined) {
+      headers.set("Content-Type", "application/json");
+    }
+
+    try {
+      return await this.#fetch(url, {
+        method,
+        headers,
+        ...(body === undefined ? {} : { body }),
+        signal: AbortSignal.timeout(this.#timeoutMs),
+      });
+    } catch (error) {
+      const timedOut = isTimeoutError(error);
+      throw new DataApiError({
+        code: timedOut ? "dataline_api_timeout" : "dataline_api_unreachable",
+        message: timedOut
+          ? "Dataline Data API did not respond before the request timeout."
+          : "Dataline Data API could not be reached.",
+        retryable: true,
+        requestId,
+        cause: error,
+      });
+    }
+  }
+}
+
+function accessAdapterError(error: unknown): Error {
+  if (error instanceof AccessAdapterError) {
+    return new DataApiError({
+      code: error.code,
+      message: error.message,
+      retryable: error.retryable,
+      ...(error.status === undefined ? {} : { status: error.status }),
+      cause: error,
+    });
+  }
+  return error instanceof Error ? error : new Error("The access adapter failed.", { cause: error });
 }
 
 export function buildUrl(baseUrl: URL, path: string, query?: QueryParameters): URL {

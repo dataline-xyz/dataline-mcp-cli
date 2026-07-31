@@ -93,6 +93,51 @@ describe("FetchDataApiClient", () => {
       code: "dataline_api_response_too_large",
     });
   });
+
+  it("refreshes rejected credentials and retries once with the same request ID", async () => {
+    let accessToken = "access-old";
+    const recoveringProvider: CredentialProvider = {
+      getHeaders: () => Promise.resolve({ Authorization: `Bearer ${accessToken}` }),
+      recoverFromUnauthorized: vi.fn(() => {
+        accessToken = "access-new";
+        return Promise.resolve(true);
+      }),
+    };
+    const fetch = vi
+      .fn<typeof globalThis.fetch>()
+      .mockResolvedValueOnce(jsonResponse({ code: "unauthorized", data: null }, 401))
+      .mockResolvedValueOnce(jsonResponse({ code: 0, data: { price: "100" } }));
+    const client = createClient(fetch, undefined, recoveringProvider);
+
+    await expect(client.get("/crypto/cex/price")).resolves.toMatchObject({
+      data: { price: "100" },
+    });
+    expect(fetch).toHaveBeenCalledTimes(2);
+    const firstHeaders = new Headers(fetch.mock.calls[0]?.[1]?.headers);
+    const secondHeaders = new Headers(fetch.mock.calls[1]?.[1]?.headers);
+    expect(firstHeaders.get("authorization")).toBe("Bearer access-old");
+    expect(secondHeaders.get("authorization")).toBe("Bearer access-new");
+    expect(secondHeaders.get("x-request-id")).toBe(firstHeaders.get("x-request-id"));
+  });
+
+  it("never retries a second unauthorized response", async () => {
+    const recoverFromUnauthorized = vi.fn(() => Promise.resolve(true));
+    const recoveringProvider: CredentialProvider = {
+      getHeaders: () => Promise.resolve({ Authorization: "Bearer token" }),
+      recoverFromUnauthorized,
+    };
+    const fetch = vi
+      .fn<typeof globalThis.fetch>()
+      .mockImplementation(() =>
+        Promise.resolve(jsonResponse({ code: "unauthorized", data: null }, 401)),
+      );
+
+    await expect(
+      createClient(fetch, undefined, recoveringProvider).get("/private"),
+    ).rejects.toMatchObject({ status: 401 });
+    expect(fetch).toHaveBeenCalledTimes(2);
+    expect(recoverFromUnauthorized.mock.calls).toHaveLength(1);
+  });
 });
 
 describe("buildUrl", () => {
@@ -109,10 +154,11 @@ describe("buildUrl", () => {
 function createClient(
   fetch: typeof globalThis.fetch,
   maxResponseBytes?: number,
+  credentials: CredentialProvider = credentialProvider,
 ): FetchDataApiClient {
   return new FetchDataApiClient({
     baseUrl: new URL("https://data-api.example/api"),
-    credentialProvider,
+    credentialProvider: credentials,
     timeoutMs: 1_000,
     version: "0.1.0",
     fetch,

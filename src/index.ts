@@ -25,6 +25,15 @@ export {
   credentialHeaders,
   inspectCredential,
 } from "./auth/credentials.js";
+export { AccessAdapterError } from "./auth/error.js";
+export { OAuthTokenManager, type OAuthTokenManagerOptions } from "./auth/oauth/token-manager.js";
+export {
+  FetchOAuthTokenClient,
+  OAuthTokenRequestError,
+  type FetchOAuthTokenClientOptions,
+  type OAuthRefreshResult,
+  type OAuthTokenClient,
+} from "./auth/oauth/token-client.js";
 export type { CredentialProvider, CredentialSource, CredentialStatus } from "./auth/credentials.js";
 export { FileSecretStore } from "./auth/secret-store.js";
 export type { OAuthTokenSet, ProfileSecrets, SecretStore } from "./auth/secret-store.js";

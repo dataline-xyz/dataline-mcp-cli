@@ -1,10 +1,14 @@
 import type { AuthMode } from "../config/runtime.js";
+import { AccessAdapterError } from "./error.js";
+import { OAuthTokenManager } from "./oauth/token-manager.js";
+import type { OAuthTokenClient } from "./oauth/token-client.js";
 import type { SecretStore } from "./secret-store.js";
 
 export const API_KEY_HEADER = "X-Dataline-Key";
 
 export interface CredentialProvider {
   getHeaders(): Promise<Readonly<Record<string, string>>>;
+  recoverFromUnauthorized?(rejectedHeaders: Readonly<Record<string, string>>): Promise<boolean>;
 }
 
 export type CredentialSource = "environment" | "profile" | "none";
@@ -15,13 +19,10 @@ export interface CredentialStatus {
   expiresAt?: number;
 }
 
-export class CredentialUnavailableError extends Error {
-  readonly code: string;
-
+export class CredentialUnavailableError extends AccessAdapterError {
   constructor(code: string, message: string) {
-    super(message);
+    super(code, message, false);
     this.name = "CredentialUnavailableError";
-    this.code = code;
   }
 }
 
@@ -39,8 +40,41 @@ export function createProfileCredentialProvider(options: {
   env?: NodeJS.ProcessEnv;
   profileName: string;
   secretStore: SecretStore;
+  oauthTokenClient?: OAuthTokenClient;
+  now?: () => number;
+  oauthExpirySkewMs?: number;
 }): CredentialProvider {
   const env = options.env ?? process.env;
+  if (options.authMode === "oauth") {
+    const tokenManager = new OAuthTokenManager({
+      profileName: options.profileName,
+      secretStore: options.secretStore,
+      ...(options.oauthTokenClient ? { tokenClient: options.oauthTokenClient } : {}),
+      ...(options.now ? { now: options.now } : {}),
+      ...(options.oauthExpirySkewMs === undefined
+        ? {}
+        : { expirySkewMs: options.oauthExpirySkewMs }),
+    });
+    return {
+      getHeaders: async () => {
+        const environmentHeaders = optionalEnvironmentHeaders(options.authMode, env);
+        if (environmentHeaders) {
+          return environmentHeaders;
+        }
+        return { Authorization: `Bearer ${await tokenManager.getAccessToken()}` };
+      },
+      recoverFromUnauthorized: async (rejectedHeaders) => {
+        if (optionalEnvironmentHeaders(options.authMode, env)) {
+          return false;
+        }
+        const rejectedAccessToken = bearerToken(rejectedHeaders.Authorization);
+        return rejectedAccessToken
+          ? tokenManager.recoverFromUnauthorized(rejectedAccessToken)
+          : false;
+      },
+    };
+  }
+
   return {
     getHeaders: async () => {
       const environmentHeaders = optionalEnvironmentHeaders(options.authMode, env);
@@ -50,11 +84,6 @@ export function createProfileCredentialProvider(options: {
 
       const secrets = await options.secretStore.get(options.profileName);
       switch (options.authMode) {
-        case "oauth":
-          if (!secrets.oauth) {
-            throw unavailable(options.authMode);
-          }
-          return { Authorization: `Bearer ${secrets.oauth.accessToken}` };
         case "api_key":
           if (!secrets.apiKey) {
             throw unavailable(options.authMode);
@@ -62,6 +91,8 @@ export function createProfileCredentialProvider(options: {
           return { [API_KEY_HEADER]: secrets.apiKey };
         case "x402":
           throw unavailable(options.authMode);
+        case "oauth":
+          throw new Error("OAuth credentials must use the token manager.");
       }
     },
   };
@@ -161,4 +192,9 @@ function unavailable(authMode: AuthMode): CredentialUnavailableError {
 function normalizedSecret(value: string | undefined): string | undefined {
   const normalized = value?.trim();
   return normalized || undefined;
+}
+
+function bearerToken(value: string | undefined): string | undefined {
+  const match = /^Bearer\s+(.+)$/i.exec(value?.trim() ?? "");
+  return normalizedSecret(match?.[1]);
 }

@@ -5,13 +5,19 @@ automatic fallback to another credential or to a paid request.
 
 ## OAuth
 
-OAuth will use Authorization Code with PKCE. `dataline auth login` will open a browser and
-temporarily listen on a loopback callback. Tokens will use the profile-aware private credential file
-and be refreshed by the shared HTTP client. MCP hosts do not need to remain blocked after login is
-complete, and the same login state will be reusable by CLI commands.
+OAuth uses bearer access tokens with refresh-token rotation. The shared token manager refreshes an
+access token 60 seconds before expiry, coalesces concurrent refreshes, persists rotated refresh
+tokens, and retries one Data API request after an HTTP 401. A second 401 is returned to the caller.
+
+Interactive login will use Authorization Code with PKCE. `dataline auth login` will open a browser
+and temporarily listen on a loopback callback. Tokens will use the profile-aware private credential
+file. MCP hosts do not need to remain blocked after login is complete, and the same login state will
+be reusable by CLI commands.
 
 OAuth requests send a bearer token to the Data API and omit `X-Dataline-Access-Mode`.
-`DATALINE_ACCESS_TOKEN` is available as a development override until profile login lands.
+`DATALINE_ACCESS_TOKEN` is available as a development override until Control API discovery,
+authorization, and token endpoint configuration is finalized. Environment access tokens cannot be
+refreshed automatically.
 
 ## API Key
 
