@@ -48,7 +48,7 @@ Credentials stay in the local MCP process and are sent only to the configured Da
 | `DATALINE_DATA_API_URL`         | `https://data-api.dataline.xyz` | Data API origin                  |
 | `DATALINE_REQUEST_TIMEOUT_MS`   | `30000`                         | Upstream timeout in milliseconds |
 | `DATALINE_X402_PRIVATE_KEY`     | none                            | x402 wallet private key          |
-| `DATALINE_X402_NETWORK`         | `eip155:84532`                  | Base Sepolia or Base mainnet     |
+| `DATALINE_X402_NETWORK`         | `eip155:8453`                   | Base network in CAIP-2 format    |
 | `DATALINE_X402_MAX_PAYMENT_USD` | `0.001`                         | Maximum payment per request      |
 
 Environment variables override profile settings and credentials. To keep an API key out of MCP
@@ -64,6 +64,9 @@ dataline auth status
 The client supports browser-based OAuth with PKCE and refresh-token rotation, stored API keys,
 development OAuth tokens, and x402 exact-USDC payments on Base. Authentication modes are explicit
 and never fall back silently.
+
+x402 defaults to Base mainnet and spends real USDC. Its `0.001` USD default is a per-request safety
+ceiling, not a fixed client-side price; Data API challenges above it are rejected before signing.
 
 ## Tools
 

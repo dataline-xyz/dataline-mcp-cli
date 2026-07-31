@@ -9,13 +9,13 @@ import {
 } from "../../../src/auth/x402/config.js";
 
 describe("x402 config", () => {
-  it("defaults to Base Sepolia with a 0.001 USD payment ceiling", () => {
+  it("defaults to Base mainnet with a 0.001 USD payment ceiling", () => {
     expect(
       loadX402Config({
         DATALINE_X402_PRIVATE_KEY: `0x${"1".repeat(64)}`,
       }),
     ).toEqual({
-      network: "eip155:84532",
+      network: "eip155:8453",
       maxPaymentUsd: "0.001",
       privateKey: `0x${"1".repeat(64)}`,
     });

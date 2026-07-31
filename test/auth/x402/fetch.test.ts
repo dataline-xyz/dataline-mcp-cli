@@ -6,8 +6,8 @@ import { createDatalinePaymentPolicy, createX402Fetch } from "../../../src/auth/
 import { FetchDataApiClient } from "../../../src/data-api/fetch-client.js";
 
 const BASE_URL = new URL("https://data-api.example/api");
-const NETWORK = "eip155:84532";
-const USDC = "0x036CbD53842c5426634e7929541eC2318f3dCF7e";
+const NETWORK = "eip155:8453";
+const USDC = "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913";
 const PRIVATE_KEY = `0x${"1".repeat(64)}` as const;
 
 describe("Dataline x402 payment policy", () => {
@@ -17,7 +17,7 @@ describe("Dataline x402 payment policy", () => {
     const result = policy(2, [
       requirement({ amount: "1001" }),
       requirement({ scheme: "upto" }),
-      requirement({ network: "eip155:8453" }),
+      requirement({ network: "eip155:84532" }),
       allowed,
     ]);
 

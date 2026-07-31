@@ -1,7 +1,7 @@
 export const X402_NETWORKS = ["eip155:84532", "eip155:8453"] as const;
 export type X402Network = (typeof X402_NETWORKS)[number];
 
-export const DEFAULT_X402_NETWORK: X402Network = "eip155:84532";
+export const DEFAULT_X402_NETWORK: X402Network = "eip155:8453";
 export const DEFAULT_X402_MAX_PAYMENT_USD = "0.001";
 
 export interface X402Config {

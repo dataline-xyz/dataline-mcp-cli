@@ -32,3 +32,8 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 - CI, package-content validation, contribution guidance, architecture notes, and security reporting
   policy.
 - MCP Registry metadata and npm trusted-publishing release automation.
+
+### Changed
+
+- x402 now defaults to Base mainnet with an explicit per-request USDC payment ceiling, while route
+  prices remain authoritative at Control API and are enforced by Data API payment challenges.

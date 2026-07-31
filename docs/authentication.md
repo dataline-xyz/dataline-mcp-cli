@@ -88,18 +88,18 @@ The client follows the standard HTTP flow:
 4. Sign an allowed requirement with the configured wallet.
 5. Retry the same request with the payment payload.
 
-The Data API challenge is the price authority. The client default of `0.001` USD is a safety
-ceiling, not a client-side price: lower challenges are accepted and higher challenges are rejected.
-The policy accepts only protocol v2, the `exact` scheme, the official USDC asset for the selected
-Base network, and requests under the configured ceiling. Requests are bound to the configured HTTPS
-Data API base URL and redirects are rejected.
+Control API owns route prices and Data API translates the current route price into an x402
+challenge. The client default of `0.001` USD is a safety ceiling, not a client-side price: lower
+challenges are accepted and higher challenges are rejected. The policy accepts only protocol v2, the
+`exact` scheme, the official USDC asset for the selected Base network, and requests under the
+configured ceiling. Requests are bound to the configured HTTPS Data API base URL and redirects are
+rejected.
 
-Base Sepolia (`eip155:84532`) is the default. Base mainnet (`eip155:8453`) must be selected
-explicitly:
+Base mainnet (`eip155:8453`) is the default for local, test, and production deployments. Payments
+spend real USDC, so fund a dedicated low-balance wallet and keep the per-request ceiling small:
 
 ```bash
 DATALINE_AUTH_MODE=x402 \
-DATALINE_X402_NETWORK=eip155:84532 \
 DATALINE_X402_PRIVATE_KEY=0x... \
 dataline mcp serve
 ```
@@ -107,8 +107,9 @@ dataline mcp serve
 One MCP tool call remains one logical Data API operation even though the x402 transport performs an
 unpaid HTTP request followed by one paid retry.
 
-The client flow is covered with protocol-level mock tests. Signed Base Sepolia end-to-end validation
-remains pending until the Data API emits and settles x402 challenges.
+The protocol-level tests cover challenge selection, signing, paid retry, request-ID preservation,
+origin restrictions, and payment ceilings. A live mainnet smoke test must use a deliberately funded
+wallet and the lowest available route price.
 
 ## Secret Handling
 

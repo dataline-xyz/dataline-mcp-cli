@@ -54,7 +54,9 @@ paywalled.
 This differs from `@x402/mcp`, which protects a tool at the MCP protocol layer. Dataline uses the
 official x402 fetch client because pricing and settlement belong to the Data API route being called.
 The adapter constrains protocol version, scheme, Base network, USDC asset, maximum amount, Data API
-origin, and redirects before signing.
+origin, and redirects before signing. Control API owns the route-price catalog; Data API validates
+the route binding and performs facilitator verification and settlement. The local MCP never calls
+Control API to price a request.
 
 ## OAuth Boundary
 

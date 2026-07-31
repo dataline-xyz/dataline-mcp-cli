@@ -54,7 +54,7 @@
         {
           "name": "DATALINE_X402_NETWORK",
           "description": "Base network in CAIP-2 format for x402 mode.",
-          "default": "eip155:84532"
+          "default": "eip155:8453"
         },
         {
           "name": "DATALINE_X402_MAX_PAYMENT_USD",
