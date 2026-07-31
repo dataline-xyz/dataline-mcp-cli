@@ -48,12 +48,36 @@ describe("CLI", () => {
       source: "none",
     });
   });
+
+  it("shows x402 policy and wallet availability without exposing the private key", async () => {
+    const env = {
+      DATALINE_AUTH_MODE: "x402",
+      DATALINE_X402_NETWORK: "eip155:8453",
+      DATALINE_X402_MAX_PAYMENT_USD: "0.001",
+      DATALINE_X402_PRIVATE_KEY: `0x${"1".repeat(64)}`,
+    };
+    const configOutput = await runCli(configDirectory, ["config", "show"], "", env);
+
+    expect(JSON.parse(configOutput)).toMatchObject({
+      authMode: "x402",
+      x402: { network: "eip155:8453", maxPaymentUsd: "0.001" },
+    });
+    expect(configOutput).not.toContain(env.DATALINE_X402_PRIVATE_KEY);
+    await expect(
+      runCli(configDirectory, ["auth", "status"], "", env).then(JSON.parse),
+    ).resolves.toMatchObject({ authenticated: true, source: "environment" });
+  });
 });
 
-async function runCli(configDirectory: string, arguments_: string[], input = ""): Promise<string> {
+async function runCli(
+  configDirectory: string,
+  arguments_: string[],
+  input = "",
+  env: NodeJS.ProcessEnv = {},
+): Promise<string> {
   let output = "";
   const program = createCli({
-    env: { DATALINE_CONFIG_HOME: configDirectory },
+    env: { DATALINE_CONFIG_HOME: configDirectory, ...env },
     stdin: Readable.from([input]),
     stdout: {
       write(chunk) {

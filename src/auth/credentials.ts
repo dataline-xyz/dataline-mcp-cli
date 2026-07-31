@@ -1,8 +1,9 @@
-import type { AuthMode } from "../config/runtime.js";
+import { buildAccessModeHeaders, type AuthMode } from "../config/runtime.js";
 import { AccessAdapterError } from "./error.js";
 import { OAuthTokenManager } from "./oauth/token-manager.js";
 import type { OAuthTokenClient } from "./oauth/token-client.js";
 import type { SecretStore } from "./secret-store.js";
+import { parseX402PrivateKey } from "./x402/config.js";
 
 export const API_KEY_HEADER = "X-Dataline-Key";
 
@@ -75,6 +76,12 @@ export function createProfileCredentialProvider(options: {
     };
   }
 
+  if (options.authMode === "x402") {
+    return {
+      getHeaders: () => Promise.resolve(buildAccessModeHeaders(options.authMode)),
+    };
+  }
+
   return {
     getHeaders: async () => {
       const environmentHeaders = optionalEnvironmentHeaders(options.authMode, env);
@@ -83,17 +90,10 @@ export function createProfileCredentialProvider(options: {
       }
 
       const secrets = await options.secretStore.get(options.profileName);
-      switch (options.authMode) {
-        case "api_key":
-          if (!secrets.apiKey) {
-            throw unavailable(options.authMode);
-          }
-          return { [API_KEY_HEADER]: secrets.apiKey };
-        case "x402":
-          throw unavailable(options.authMode);
-        case "oauth":
-          throw new Error("OAuth credentials must use the token manager.");
+      if (!secrets.apiKey) {
+        throw unavailable(options.authMode);
       }
+      return { [API_KEY_HEADER]: secrets.apiKey };
     },
   };
 }
@@ -106,6 +106,14 @@ export async function inspectCredential(options: {
 }): Promise<CredentialStatus> {
   const env = options.env ?? process.env;
   if (optionalEnvironmentHeaders(options.authMode, env)) {
+    return { authenticated: true, source: "environment" };
+  }
+
+  if (options.authMode === "x402") {
+    if (!normalizedSecret(env.DATALINE_X402_PRIVATE_KEY)) {
+      return { authenticated: false, source: "none" };
+    }
+    parseX402PrivateKey(env.DATALINE_X402_PRIVATE_KEY);
     return { authenticated: true, source: "environment" };
   }
 
@@ -149,10 +157,7 @@ export function credentialHeaders(
       return { [API_KEY_HEADER]: apiKey };
     }
     case "x402":
-      throw new CredentialUnavailableError(
-        "x402_not_available",
-        "x402 mode is not available in this release.",
-      );
+      return buildAccessModeHeaders(authMode);
   }
 }
 
@@ -183,8 +188,8 @@ function unavailable(authMode: AuthMode): CredentialUnavailableError {
       );
     case "x402":
       return new CredentialUnavailableError(
-        "x402_not_available",
-        "x402 mode is not available in this release.",
+        "x402_private_key_missing",
+        "x402 mode requires DATALINE_X402_PRIVATE_KEY.",
       );
   }
 }

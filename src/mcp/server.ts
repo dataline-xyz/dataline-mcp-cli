@@ -4,6 +4,7 @@ import {
   createEnvironmentCredentialProvider,
   type CredentialProvider,
 } from "../auth/credentials.js";
+import { createX402FetchFromEnvironment } from "../auth/x402/fetch.js";
 import type { RuntimeConfig } from "../config/runtime.js";
 import { FetchDataApiClient } from "../data-api/fetch-client.js";
 import type { DataApiClient } from "../data-api/types.js";
@@ -32,6 +33,7 @@ export interface DatalineMcpServerOptions {
   version?: string;
   dataApiClient?: DataApiClient;
   credentialProvider?: CredentialProvider;
+  fetch?: typeof globalThis.fetch;
   env?: NodeJS.ProcessEnv;
 }
 
@@ -47,13 +49,19 @@ export function createDatalineMcpServer(options: DatalineMcpServerOptions): McpS
   );
 
   const version = options.version ?? VERSION;
+  const env = options.env ?? process.env;
   const dataApiClient =
     options.dataApiClient ??
     new FetchDataApiClient({
       baseUrl: options.config.dataApiUrl,
       credentialProvider:
         options.credentialProvider ??
-        createEnvironmentCredentialProvider(options.config.authMode, options.env ?? process.env),
+        createEnvironmentCredentialProvider(options.config.authMode, env),
+      fetch:
+        options.fetch ??
+        (options.config.authMode === "x402"
+          ? createX402FetchFromEnvironment(options.config.dataApiUrl, env)
+          : globalThis.fetch),
       timeoutMs: options.config.requestTimeoutMs,
       version,
     });

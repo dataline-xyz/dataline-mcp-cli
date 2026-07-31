@@ -32,15 +32,18 @@ Credentials stay in the local MCP process and are sent only to the configured Da
 
 ## Configuration
 
-| Variable                      | Default                         | Description                      |
-| ----------------------------- | ------------------------------- | -------------------------------- |
-| `DATALINE_AUTH_MODE`          | `oauth`                         | `oauth`, `api_key`, or `x402`    |
-| `DATALINE_API_KEY`            | none                            | Required for `api_key` mode      |
-| `DATALINE_ACCESS_TOKEN`       | none                            | Development token for OAuth mode |
-| `DATALINE_PROFILE`            | active profile                  | Named local profile              |
-| `DATALINE_CONFIG_HOME`        | platform config directory       | Override local profile storage   |
-| `DATALINE_DATA_API_URL`       | `https://data-api.dataline.xyz` | Data API origin                  |
-| `DATALINE_REQUEST_TIMEOUT_MS` | `30000`                         | Upstream timeout in milliseconds |
+| Variable                        | Default                         | Description                      |
+| ------------------------------- | ------------------------------- | -------------------------------- |
+| `DATALINE_AUTH_MODE`            | `oauth`                         | `oauth`, `api_key`, or `x402`    |
+| `DATALINE_API_KEY`              | none                            | Required for `api_key` mode      |
+| `DATALINE_ACCESS_TOKEN`         | none                            | Development token for OAuth mode |
+| `DATALINE_PROFILE`              | active profile                  | Named local profile              |
+| `DATALINE_CONFIG_HOME`          | platform config directory       | Override local profile storage   |
+| `DATALINE_DATA_API_URL`         | `https://data-api.dataline.xyz` | Data API origin                  |
+| `DATALINE_REQUEST_TIMEOUT_MS`   | `30000`                         | Upstream timeout in milliseconds |
+| `DATALINE_X402_PRIVATE_KEY`     | none                            | x402 wallet private key          |
+| `DATALINE_X402_NETWORK`         | `eip155:84532`                  | Base Sepolia or Base mainnet     |
+| `DATALINE_X402_MAX_PAYMENT_USD` | `0.001`                         | Maximum payment per request      |
 
 Environment variables override profile settings and credentials. To keep an API key out of MCP
 configuration, create a local profile and import the key through stdin:
@@ -52,9 +55,9 @@ printf '%s' "$DATALINE_API_KEY" | dataline auth set-api-key --stdin
 dataline auth status
 ```
 
-The current release supports stored API keys and development OAuth tokens. Interactive OAuth login
-and x402 payment are not yet available. Authentication modes are explicit and never fall back
-silently.
+The client supports stored API keys, development OAuth tokens, and x402 exact-USDC payments on Base.
+Interactive OAuth login and live Data API x402 settlement still depend on the corresponding backend
+endpoints. Authentication modes are explicit and never fall back silently.
 
 ## Tools
 

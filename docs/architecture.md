@@ -51,9 +51,10 @@ The Data API is the x402 resource server. The local client receives an HTTP 402 
 selected payment requirement, and retries the same request. The MCP transport itself is not
 paywalled.
 
-This differs from `@x402/mcp`, which protects a tool at the MCP protocol layer. For Dataline, the
-future HTTP adapter will use the official x402 fetch client because pricing and settlement belong to
-the Data API route being called.
+This differs from `@x402/mcp`, which protects a tool at the MCP protocol layer. Dataline uses the
+official x402 fetch client because pricing and settlement belong to the Data API route being called.
+The adapter constrains protocol version, scheme, Base network, USDC asset, maximum amount, Data API
+origin, and redirects before signing.
 
 ## SDK Version
 

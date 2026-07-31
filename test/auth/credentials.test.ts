@@ -18,10 +18,12 @@ describe("credential headers", () => {
     });
   });
 
-  it("fails clearly when credentials or x402 support are unavailable", () => {
+  it("fails clearly when credentials are unavailable and marks x402 requests explicitly", () => {
     expect(() => credentialHeaders("oauth", {})).toThrow(CredentialUnavailableError);
     expect(() => credentialHeaders("api_key", {})).toThrow("DATALINE_API_KEY");
-    expect(() => credentialHeaders("x402", {})).toThrow("not available");
+    expect(credentialHeaders("x402", {})).toEqual({
+      "X-Dataline-Access-Mode": "x402",
+    });
   });
 
   it("uses environment credentials before profile credentials", async () => {

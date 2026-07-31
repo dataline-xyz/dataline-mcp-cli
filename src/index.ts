@@ -34,6 +34,26 @@ export {
   type OAuthRefreshResult,
   type OAuthTokenClient,
 } from "./auth/oauth/token-client.js";
+export {
+  DEFAULT_X402_MAX_PAYMENT_USD,
+  DEFAULT_X402_NETWORK,
+  X402_NETWORKS,
+  decimalToAtomic,
+  loadX402Config,
+  loadX402PolicyConfig,
+  parseMaxPaymentUsd,
+  parseX402PrivateKey,
+  parseX402Network,
+  type X402Config,
+  type X402Network,
+  type X402PolicyConfig,
+} from "./auth/x402/config.js";
+export {
+  createDatalinePaymentPolicy,
+  createX402Fetch,
+  createX402FetchFromEnvironment,
+  type X402FetchOptions,
+} from "./auth/x402/fetch.js";
 export type { CredentialProvider, CredentialSource, CredentialStatus } from "./auth/credentials.js";
 export { FileSecretStore } from "./auth/secret-store.js";
 export type { OAuthTokenSet, ProfileSecrets, SecretStore } from "./auth/secret-store.js";

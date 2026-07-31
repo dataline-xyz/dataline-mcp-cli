@@ -44,24 +44,42 @@ files.
 
 ## x402
 
-x402 mode is reserved but intentionally fails closed in the current release. Once implemented, it
-will require wallet configuration and requests will send:
+x402 mode uses the official `@x402/fetch` and `@x402/evm` clients. It requires an EVM private key in
+`DATALINE_X402_PRIVATE_KEY`; wallet keys are never stored in a Dataline profile. Requests send:
 
 ```http
 X-Dataline-Access-Mode: x402
 ```
 
-The client then follows the standard HTTP flow:
+The client follows the standard HTTP flow:
 
 1. Send the unpaid request.
 2. Parse the Data API's HTTP 402 payment requirements.
-3. Ask for approval when policy requires it.
-4. Sign a supported requirement with the configured wallet.
-5. Retry the request with the payment payload.
-6. Persist the returned settlement receipt without logging private material.
+3. Apply local payment policy before signing.
+4. Sign an allowed requirement with the configured wallet.
+5. Retry the same request with the payment payload.
 
-The first supported network will be Base Sepolia, followed by Base mainnet after signed end-to-end
-validation.
+The Data API challenge is the price authority. The client default of `0.001` USD is a safety
+ceiling, not a client-side price: lower challenges are accepted and higher challenges are rejected.
+The policy accepts only protocol v2, the `exact` scheme, the official USDC asset for the selected
+Base network, and requests under the configured ceiling. Requests are bound to the configured HTTPS
+Data API base URL and redirects are rejected.
+
+Base Sepolia (`eip155:84532`) is the default. Base mainnet (`eip155:8453`) must be selected
+explicitly:
+
+```bash
+DATALINE_AUTH_MODE=x402 \
+DATALINE_X402_NETWORK=eip155:84532 \
+DATALINE_X402_PRIVATE_KEY=0x... \
+dataline mcp serve
+```
+
+One MCP tool call remains one logical Data API operation even though the x402 transport performs an
+unpaid HTTP request followed by one paid retry.
+
+The client flow is covered with protocol-level mock tests. Signed Base Sepolia end-to-end validation
+remains pending until the Data API emits and settles x402 challenges.
 
 ## Secret Handling
 

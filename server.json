@@ -31,13 +31,35 @@
         {
           "name": "DATALINE_AUTH_MODE",
           "description": "Authentication mode for this installation.",
-          "default": "api_key"
+          "default": "oauth"
         },
         {
           "name": "DATALINE_API_KEY",
-          "description": "Dataline API key.",
-          "isRequired": true,
+          "description": "Dataline API key for api_key mode.",
+          "isRequired": false,
           "isSecret": true
+        },
+        {
+          "name": "DATALINE_ACCESS_TOKEN",
+          "description": "Development bearer token for oauth mode.",
+          "isRequired": false,
+          "isSecret": true
+        },
+        {
+          "name": "DATALINE_X402_PRIVATE_KEY",
+          "description": "EVM wallet private key for x402 mode.",
+          "isRequired": false,
+          "isSecret": true
+        },
+        {
+          "name": "DATALINE_X402_NETWORK",
+          "description": "Base network in CAIP-2 format for x402 mode.",
+          "default": "eip155:84532"
+        },
+        {
+          "name": "DATALINE_X402_MAX_PAYMENT_USD",
+          "description": "Maximum x402 payment per Data API request.",
+          "default": "0.001"
         },
         {
           "name": "DATALINE_DATA_API_URL",

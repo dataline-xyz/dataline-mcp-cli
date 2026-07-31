@@ -3,6 +3,7 @@ import type { Readable } from "node:stream";
 
 import { createProfileCredentialProvider, inspectCredential } from "../auth/credentials.js";
 import { FileSecretStore, type SecretStore } from "../auth/secret-store.js";
+import { loadX402PolicyConfig } from "../auth/x402/config.js";
 import { resolveDatalinePaths } from "../config/paths.js";
 import {
   FileProfileStore,
@@ -63,6 +64,7 @@ export function createCli(dependencies: CliDependencies = { stdout: process.stdo
         authMode: context.config.authMode,
         dataApiUrl: context.config.dataApiUrl.toString(),
         requestTimeoutMs: context.config.requestTimeoutMs,
+        ...(context.config.authMode === "x402" ? { x402: loadX402PolicyConfig(env) } : {}),
       });
     });
 
