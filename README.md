@@ -6,7 +6,7 @@ configuration.
 
 ## Requirements
 
-- Node.js 20 or newer
+- Node.js 20.19 or newer
 - Dataline credentials for the selected authentication mode
 
 ## Quick Start
