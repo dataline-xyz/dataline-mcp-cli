@@ -11,6 +11,13 @@ configuration.
 
 ## Quick Start
 
+Sign in once. The browser returns to a temporary loopback callback, and the resulting session is
+stored outside the repository in the platform config directory:
+
+```bash
+npx -y @dataline/mcp auth login
+```
+
 Add this server to any client that supports local stdio MCP servers:
 
 ```json
@@ -18,11 +25,7 @@ Add this server to any client that supports local stdio MCP servers:
   "mcpServers": {
     "dataline": {
       "command": "npx",
-      "args": ["-y", "@dataline/mcp", "mcp", "serve"],
-      "env": {
-        "DATALINE_AUTH_MODE": "api_key",
-        "DATALINE_API_KEY": "YOUR_API_KEY"
-      }
+      "args": ["-y", "@dataline/mcp", "mcp", "serve"]
     }
   }
 }
@@ -37,6 +40,9 @@ Credentials stay in the local MCP process and are sent only to the configured Da
 | `DATALINE_AUTH_MODE`            | `oauth`                         | `oauth`, `api_key`, or `x402`    |
 | `DATALINE_API_KEY`              | none                            | Required for `api_key` mode      |
 | `DATALINE_ACCESS_TOKEN`         | none                            | Development token for OAuth mode |
+| `DATALINE_OAUTH_ISSUER`         | Control API production issuer   | OAuth authorization server       |
+| `DATALINE_OAUTH_SCOPE`          | `data.*.read`                   | Space-delimited OAuth scopes     |
+| `DATALINE_OAUTH_RESOURCE`       | Data API URL                    | OAuth resource binding           |
 | `DATALINE_PROFILE`              | active profile                  | Named local profile              |
 | `DATALINE_CONFIG_HOME`          | platform config directory       | Override local profile storage   |
 | `DATALINE_DATA_API_URL`         | `https://data-api.dataline.xyz` | Data API origin                  |
@@ -55,9 +61,9 @@ printf '%s' "$DATALINE_API_KEY" | dataline auth set-api-key --stdin
 dataline auth status
 ```
 
-The client supports stored API keys, development OAuth tokens, and x402 exact-USDC payments on Base.
-Interactive OAuth login and live Data API x402 settlement still depend on the corresponding backend
-endpoints. Authentication modes are explicit and never fall back silently.
+The client supports browser-based OAuth with PKCE and refresh-token rotation, stored API keys,
+development OAuth tokens, and x402 exact-USDC payments on Base. Authentication modes are explicit
+and never fall back silently.
 
 ## Tools
 

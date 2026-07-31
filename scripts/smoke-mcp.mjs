@@ -4,6 +4,11 @@ import { StdioClientTransport } from "@modelcontextprotocol/sdk/client/stdio.js"
 const transport = new StdioClientTransport({
   command: process.execPath,
   args: ["dist/cli.js", "mcp", "serve"],
+  env: {
+    ...process.env,
+    DATALINE_AUTH_MODE: "oauth",
+    DATALINE_ACCESS_TOKEN: "dataline-release-smoke-token",
+  },
   stderr: "pipe",
 });
 const client = new Client({ name: "dataline-smoke", version: "0.0.0" });

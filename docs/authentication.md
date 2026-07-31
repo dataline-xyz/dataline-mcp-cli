@@ -9,15 +9,41 @@ OAuth uses bearer access tokens with refresh-token rotation. The shared token ma
 access token 60 seconds before expiry, coalesces concurrent refreshes, persists rotated refresh
 tokens, and retries one Data API request after an HTTP 401. A second 401 is returned to the caller.
 
-Interactive login will use Authorization Code with PKCE. `dataline auth login` will open a browser
-and temporarily listen on a loopback callback. Tokens will use the profile-aware private credential
-file. MCP hosts do not need to remain blocked after login is complete, and the same login state will
-be reusable by CLI commands.
+Interactive login uses Authorization Code with S256 PKCE:
+
+```bash
+dataline auth login
+```
+
+The command discovers authorization-server metadata, dynamically registers a public client for an
+exact `http://127.0.0.1:<port>/callback` redirect, prints the authorization URL, opens a browser,
+and waits up to five minutes for the callback. Use `--no-open` in a headless shell. Only the login
+command waits for a callback; MCP startup never opens a browser.
+
+The callback requires one matching `state` and one authorization code. The code, PKCE verifier,
+access token, and refresh token are never printed. The token set and its public client/resource
+binding are written to the profile-aware private credential file. The CLI and MCP server then reuse
+the same session.
+
+For a non-production environment, keep issuer, Data API URL, and OAuth resource aligned:
+
+```bash
+dataline profile set test \
+  --auth-mode oauth \
+  --data-api-url https://data-api.t.example.com \
+  --oauth-issuer https://control-api.t.example.com \
+  --oauth-resource https://data-api.t.example.com
+dataline profile use test
+dataline auth login
+```
+
+The default scope is `data.*.read`. Override it with `--oauth-scope` on `profile set` or
+`DATALINE_OAUTH_SCOPE`. The authorization server remains the scope authority; user tier and route
+entitlements are evaluated by Dataline services rather than encoded as OAuth scopes.
 
 OAuth requests send a bearer token to the Data API and omit `X-Dataline-Access-Mode`.
-`DATALINE_ACCESS_TOKEN` is available as a development override until Control API discovery,
-authorization, and token endpoint configuration is finalized. Environment access tokens cannot be
-refreshed automatically.
+`DATALINE_ACCESS_TOKEN` remains available as a development override. Environment access tokens
+cannot be refreshed automatically.
 
 ## API Key
 
@@ -36,6 +62,9 @@ Requests send `X-Dataline-Key` and omit `X-Dataline-Access-Mode`.
 
 Profiles keep non-secret runtime settings separate from credentials. `DATALINE_PROFILE` selects a
 profile for one process; otherwise the active profile is used. Environment variables override both.
+OAuth issuer, scope, and resource are non-secret profile settings. OAuth client binding and tokens
+stay together in the private credential file so refresh rotation cannot accidentally switch clients
+or resources.
 
 By default, files live under the platform config directory in `dataline/profiles.json` and
 `dataline/credentials.json`. `DATALINE_CONFIG_HOME` overrides this directory. Directories are

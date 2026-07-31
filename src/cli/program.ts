@@ -56,7 +56,7 @@ export function createCli(dependencies: CliDependencies = { stdout: process.stdo
     .action(async () => {
       const context = await resolveRuntimeContext(env, { profileStore, secretStore });
       const oauthTokens =
-        context.config.authMode === "oauth"
+        context.config.authMode === "oauth" && !env.DATALINE_ACCESS_TOKEN?.trim()
           ? (await secretStore.get(context.profileName)).oauth
           : undefined;
       const oauthTokenClient = oauthTokens?.client

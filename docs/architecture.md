@@ -56,6 +56,18 @@ official x402 fetch client because pricing and settlement belong to the Data API
 The adapter constrains protocol version, scheme, Base network, USDC asset, maximum amount, Data API
 origin, and redirects before signing.
 
+## OAuth Boundary
+
+Control API is the OAuth authorization server and Data API is the protected resource. The local CLI
+is a public OAuth client: it discovers server metadata, dynamically registers an exact loopback
+redirect, performs Authorization Code with S256 PKCE, and stores the resulting client/resource
+binding with the token set.
+
+Interactive authorization belongs only to `dataline auth login`. The stdio MCP server reads the
+shared profile, refreshes an expiring access token through the stored client binding, and retries
+one Data API request after a 401. It never starts a callback listener or changes auth mode
+implicitly.
+
 ## SDK Version
 
 The project uses the production MCP TypeScript SDK v1 line. SDK v2 is still a pre-release as of the
