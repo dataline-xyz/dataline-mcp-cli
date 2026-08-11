@@ -27,8 +27,7 @@ export function createX402Fetch(options: X402FetchOptions): typeof globalThis.fe
   const account = privateKeyToAccount(options.privateKey);
   const fetch = bindFetchToBaseUrl(options.fetch ?? globalThis.fetch, options.baseUrl);
   const policy = createDatalinePaymentPolicy(options.network, options.maxPaymentUsd);
-
-  return wrapFetchWithPaymentFromConfig(fetch, {
+  const paymentFetch = wrapFetchWithPaymentFromConfig(fetch, {
     schemes: [
       {
         network: options.network,
@@ -37,6 +36,27 @@ export function createX402Fetch(options: X402FetchOptions): typeof globalThis.fe
     ],
     policies: [policy],
   });
+
+  return async (input, init) => {
+    let response: Response;
+    try {
+      response = await paymentFetch(input, init);
+    } catch (error) {
+      throw normalizeX402FetchError(error);
+    }
+    if (response.status !== 402) {
+      return response;
+    }
+
+    const reason = paymentFailureReason(response);
+    await response.body?.cancel();
+    throw new AccessAdapterError(
+      "x402_payment_rejected",
+      reason ? `x402 payment rejected: ${reason}` : "x402 payment was rejected by Dataline.",
+      false,
+      402,
+    );
+  };
 }
 
 export function createDatalinePaymentPolicy(
@@ -132,4 +152,72 @@ function assertSecureBaseUrl(baseUrl: URL): void {
   if (baseUrl.protocol !== "https:") {
     throw new Error("x402 mode requires an HTTPS Dataline Data API URL.");
   }
+}
+
+function paymentFailureReason(response: Response): string | undefined {
+  const encoded =
+    response.headers.get("payment-required") ?? response.headers.get("x-payment-required");
+  if (!encoded) {
+    return undefined;
+  }
+
+  try {
+    const decoded = JSON.parse(Buffer.from(encoded, "base64").toString("utf8")) as unknown;
+    if (!isRecord(decoded) || typeof decoded.error !== "string") {
+      return undefined;
+    }
+    const reason = decoded.error.trim();
+    return reason ? reason.slice(0, 500) : undefined;
+  } catch {
+    return undefined;
+  }
+}
+
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === "object" && value !== null && !Array.isArray(value);
+}
+
+function normalizeX402FetchError(error: unknown): Error {
+  if (error instanceof AccessAdapterError) {
+    return error;
+  }
+
+  const message = error instanceof Error ? error.message : "";
+  if (message.includes("Dataline accepts only x402 protocol version 2.")) {
+    return new AccessAdapterError(
+      "x402_version_not_allowed",
+      "Dataline accepts only x402 protocol version 2.",
+      false,
+    );
+  }
+  if (message.includes("The payment challenge did not offer exact USDC")) {
+    const reason = message.slice(message.indexOf("The payment challenge did not offer exact USDC"));
+    return new AccessAdapterError("x402_payment_not_allowed", reason, false);
+  }
+  if (message.startsWith("Failed to parse payment requirements:")) {
+    return new AccessAdapterError(
+      "x402_challenge_invalid",
+      "Dataline returned an invalid x402 payment challenge.",
+      false,
+      402,
+    );
+  }
+  if (message.startsWith("Failed to create payment payload:")) {
+    return new AccessAdapterError(
+      "x402_payment_signing_failed",
+      "The x402 client could not create a payment authorization.",
+      false,
+    );
+  }
+  if (message === "Payment already attempted") {
+    return new AccessAdapterError(
+      "x402_payment_already_attempted",
+      "The request already contains an x402 payment signature.",
+      false,
+    );
+  }
+
+  return error instanceof Error
+    ? error
+    : new Error("The x402 payment client failed.", { cause: error });
 }

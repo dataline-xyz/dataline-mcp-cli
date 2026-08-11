@@ -158,6 +158,16 @@ export class FetchDataApiClient implements DataApiClient {
         signal: AbortSignal.timeout(this.#timeoutMs),
       });
     } catch (error) {
+      if (error instanceof AccessAdapterError) {
+        throw new DataApiError({
+          code: error.code,
+          message: error.message,
+          retryable: error.retryable,
+          ...(error.status === undefined ? {} : { status: error.status }),
+          requestId,
+          cause: error,
+        });
+      }
       const timedOut = isTimeoutError(error);
       throw new DataApiError({
         code: timedOut ? "dataline_api_timeout" : "dataline_api_unreachable",
