@@ -3,6 +3,7 @@ import { describe, expect, it } from "vitest";
 import type { DataApiClient, DataApiResult, QueryParameters } from "../../../src/data-api/types.js";
 import { CryptoService } from "../../../src/features/crypto/service.js";
 import type { JsonRecord } from "../../../src/features/shared/records.js";
+import { ToolInputError } from "../../../src/mcp/tool-result.js";
 
 describe("CryptoService", () => {
   it("normalizes and compacts CEX price data with useful quality warnings", async () => {
@@ -75,6 +76,33 @@ describe("CryptoService", () => {
     });
   });
 
+  it("promotes an unreliable confidence verdict to a critical warning", async () => {
+    const client = new RecordingDataApiClient({
+      "/v1/crypto/cex/price": {
+        data: {
+          reference_price: "0.00001",
+          confidence: { verdict: "unreliable" },
+          snapshots: [],
+        },
+        warnings: [],
+      },
+    });
+
+    const output = await new CryptoService(client).getCexPrice({
+      base: "PEPE",
+      quote: "USDT",
+      venues: [],
+      quote_notional: 1_000_000_000,
+    });
+
+    expect(output.warnings).toContainEqual({
+      code: "unreliable_price_confidence",
+      message:
+        "Price confidence is unreliable; do not treat the reference price as actionable without more evidence.",
+      severity: "critical",
+    });
+  });
+
   it("turns OHLCV candles into compact columns and rows", async () => {
     const client = new RecordingDataApiClient({
       "/v1/crypto/history": {
@@ -123,6 +151,24 @@ describe("CryptoService", () => {
     expect(output.rows).toEqual([
       ["2026-07-27T00:00:00Z", "100", "110", "90", "105", "12", null, null, null],
     ]);
+  });
+
+  it("rejects an inverted OHLCV time range before contacting Data API", async () => {
+    const client = new RecordingDataApiClient({});
+
+    await expect(
+      new CryptoService(client).getOhlcv({
+        base: "BTC",
+        quote: "USDT",
+        venue: "binance",
+        market_type: "spot",
+        interval: "1h",
+        limit: 5,
+        start_time: "2026-08-11T12:00:00Z",
+        end_time: "2026-08-10T12:00:00Z",
+      }),
+    ).rejects.toBeInstanceOf(ToolInputError);
+    expect(client.calls).toHaveLength(0);
   });
 });
 

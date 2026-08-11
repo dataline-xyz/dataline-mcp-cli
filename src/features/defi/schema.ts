@@ -25,6 +25,14 @@ export const DEFI_POOL_SORTS = [
 ] as const;
 export const DEFI_NETWORKS = ["base", "all"] as const;
 
+const resultLimit = z
+  .number()
+  .int()
+  .min(1)
+  .max(20)
+  .default(5)
+  .describe("Pools returned to the agent; defaults to 5. Set 20 for the full provider page.");
+
 export const defiPoolListInputSchema = {
   dexes: z
     .array(z.enum(DEFI_BASE_DEXES))
@@ -33,6 +41,7 @@ export const defiPoolListInputSchema = {
     .describe("Optional Base DEX filters; empty means all supported DEXs."),
   sort: z.enum(DEFI_POOL_SORTS).default("reserve_in_usd_desc"),
   page: z.number().int().min(1).default(1),
+  limit: resultLimit,
 };
 
 export const defiPoolSearchInputSchema = {
@@ -44,6 +53,7 @@ export const defiPoolSearchInputSchema = {
     .describe("Pool address, token contract address, token symbol, or token name."),
   network: z.enum(DEFI_NETWORKS).default("base"),
   page: z.number().int().min(1).default(1),
+  limit: resultLimit,
 };
 
 const poolSchema = z.object({
@@ -68,6 +78,8 @@ export const defiPoolListOutputSchema = {
   sort: z.enum(DEFI_POOL_SORTS),
   page: z.number().int(),
   count: z.number().int(),
+  available_on_page: z.number().int(),
+  truncated: z.boolean(),
   next_page: z.number().int().nullable(),
   pools: z.array(poolSchema),
   warnings: z.array(warningSchema),
@@ -79,6 +91,8 @@ export const defiPoolSearchOutputSchema = {
   network: z.enum(DEFI_NETWORKS),
   page: z.number().int(),
   count: z.number().int(),
+  available_on_page: z.number().int(),
+  truncated: z.boolean(),
   next_page: z.number().int().nullable(),
   pools: z.array(poolSchema),
   warnings: z.array(warningSchema),

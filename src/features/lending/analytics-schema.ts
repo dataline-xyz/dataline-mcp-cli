@@ -56,9 +56,9 @@ export const lendingHistoryInputSchema = {
     .describe("Used only for vault history."),
   metric: z
     .enum(LENDING_HISTORY_METRICS)
-    .default("supplyApy")
+    .optional()
     .describe(
-      "Variable-rate metrics: supplyApy, borrowApy, totalSuppliedUsd, totalBorrowedUsd, liquidityUsd, utilization, assetPriceUsd. Vault metrics: apy, netApy, totalAssetsUsd, idleAssetsUsd, sharePrice.",
+      "Variable-rate metrics: supplyApy, borrowApy, totalSuppliedUsd, totalBorrowedUsd, liquidityUsd, utilization, assetPriceUsd. Vault metrics: apy, netApy, totalAssetsUsd, idleAssetsUsd, sharePrice. Omit to use supplyApy for a variable-rate market or netApy for a vault.",
     ),
   interval: z.enum(LENDING_HISTORY_INTERVALS).default("day"),
   start_time: z.string().datetime({ offset: true }).optional(),

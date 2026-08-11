@@ -1,4 +1,5 @@
 import type { DataApiClient, DataApiResult } from "../../data-api/types.js";
+import { ToolInputError } from "../../mcp/tool-result.js";
 import { collectWarnings } from "../shared/issues.js";
 import { compactRecord, records, type JsonRecord } from "../shared/records.js";
 import type {
@@ -16,6 +17,7 @@ export class AnnouncementsService {
   }
 
   async search(input: AnnouncementSearchInput): Promise<AnnouncementSearchOutput> {
+    validateTimeRange(input.start_time, input.end_time);
     const response = await this.#client.get<JsonRecord>("/cex/announcements/list", {
       source: input.source,
       category: input.category,
@@ -37,6 +39,16 @@ export class AnnouncementsService {
       warnings: collectWarnings(response.warnings, response.data),
       errors: [],
     };
+  }
+}
+
+function validateTimeRange(startTime: string | undefined, endTime: string | undefined): void {
+  if (startTime && endTime && Date.parse(endTime) < Date.parse(startTime)) {
+    throw new ToolInputError(
+      "invalid_time_range",
+      "end_time must be later than or equal to start_time.",
+      "fix_time_range",
+    );
   }
 }
 

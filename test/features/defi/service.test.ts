@@ -21,6 +21,7 @@ describe("DefiPoolsService", () => {
       dexes: ["aerodrome-base", "uniswap-v3-base"],
       sort: "price_desc",
       page: 2,
+      limit: 5,
     });
 
     expect(client.calls[0]).toEqual({
@@ -34,7 +35,9 @@ describe("DefiPoolsService", () => {
     });
     expect(output).toMatchObject({
       network: "base",
-      count: 20,
+      count: 5,
+      available_on_page: 20,
+      truncated: true,
       next_page: 3,
       errors: [],
     });
@@ -66,6 +69,7 @@ describe("DefiPoolsService", () => {
       query: " WETH ",
       network: "all",
       page: 1,
+      limit: 5,
     });
 
     expect(client.calls[0]).toEqual({
@@ -76,6 +80,8 @@ describe("DefiPoolsService", () => {
       query: "WETH",
       network: "all",
       count: 1,
+      available_on_page: 1,
+      truncated: false,
       next_page: null,
       pools: [{ pool_id: "eth_pool", base_token_price_usd: "3800" }],
     });

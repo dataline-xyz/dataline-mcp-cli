@@ -104,7 +104,7 @@ export function registerLendingTools(
     {
       title: "Get lending history",
       description:
-        "Get one variable-rate market or vault metric series. Returns the 60 most recent points by default; set points_limit=0 only when the full series is worth the added agent context.",
+        "Get one variable-rate market or vault metric series. The metric defaults to supplyApy for markets and netApy for vaults. Returns the 60 most recent points by default; set points_limit=0 only when the full series is worth the added agent context.",
       inputSchema: lendingHistoryInputSchema,
       outputSchema: lendingHistoryOutputSchema,
       annotations: READ_ONLY_ANNOTATIONS,

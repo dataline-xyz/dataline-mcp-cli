@@ -1,4 +1,5 @@
 import type { DataApiClient, DataApiResult } from "../../data-api/types.js";
+import { ToolInputError } from "../../mcp/tool-result.js";
 import { collectWarnings, dedupeWarnings, unavailableWarnings, warning } from "../shared/issues.js";
 import {
   compactRecord,
@@ -79,6 +80,7 @@ export class CryptoService {
   }
 
   async getOhlcv(input: OhlcvInput): Promise<CryptoOhlcvOutput> {
+    validateTimeRange(input.start_time, input.end_time);
     const base = input.base.trim().toUpperCase();
     const quote = input.quote.trim().toUpperCase();
     const response = await this.#client.get<JsonRecord>("/v1/crypto/history", {
@@ -104,10 +106,12 @@ function priceOutput(
   const firstSnapshot = snapshots[0];
   const market = firstSnapshot && isRecord(firstSnapshot.market) ? firstSnapshot.market : undefined;
   const confidence = isRecord(response.data.confidence) ? response.data.confidence : undefined;
+  const confidenceVerdict = firstString(confidence?.verdict);
   const venues = snapshots.slice(0, 5).map(slimSnapshot);
   const warnings = dedupeWarnings([
     ...collectWarnings(response.warnings, response.data),
     ...unavailableWarnings(response.data),
+    ...confidenceWarnings(confidenceVerdict),
     ...priceQualityWarnings(venues, fallbackQuote),
   ]);
 
@@ -122,11 +126,43 @@ function priceOutput(
       firstSnapshot?.ask,
     ),
     as_of: sourceTime(snapshots),
-    confidence: firstString(confidence?.verdict) ?? null,
+    confidence: confidenceVerdict ?? null,
     venues,
     warnings,
     errors: [],
   };
+}
+
+function confidenceWarnings(verdict: string | undefined): ReturnType<typeof warning>[] {
+  if (verdict === "unreliable") {
+    return [
+      {
+        code: "unreliable_price_confidence",
+        message:
+          "Price confidence is unreliable; do not treat the reference price as actionable without more evidence.",
+        severity: "critical",
+      },
+    ];
+  }
+  if (verdict === "borderline") {
+    return [
+      warning(
+        "borderline_price_confidence",
+        "Price confidence is borderline; use venue or depth-aware checks before acting.",
+      ),
+    ];
+  }
+  return [];
+}
+
+function validateTimeRange(startTime: string | undefined, endTime: string | undefined): void {
+  if (startTime && endTime && Date.parse(endTime) < Date.parse(startTime)) {
+    throw new ToolInputError(
+      "invalid_time_range",
+      "end_time must be later than or equal to start_time.",
+      "fix_time_range",
+    );
+  }
 }
 
 function ohlcvOutput(

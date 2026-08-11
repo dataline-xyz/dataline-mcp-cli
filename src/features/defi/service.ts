@@ -24,7 +24,7 @@ export class DefiPoolsService {
       sort: input.sort,
       page: input.page,
     });
-    const page = poolPage(response, input.page);
+    const page = poolPage(response, input.page, input.limit);
     return {
       network: "base",
       dexes: input.dexes,
@@ -41,7 +41,7 @@ export class DefiPoolsService {
       network: input.network === "all" ? undefined : input.network,
       page: input.page,
     });
-    const page = poolPage(response, input.page);
+    const page = poolPage(response, input.page, input.limit);
     return {
       query,
       network: input.network,
@@ -54,11 +54,18 @@ export class DefiPoolsService {
 function poolPage(
   response: DataApiResult<unknown>,
   page: number,
-): Pick<DefiPoolListOutput, "count" | "next_page" | "pools" | "warnings" | "errors"> {
+  limit: number,
+): Pick<
+  DefiPoolListOutput,
+  "count" | "available_on_page" | "truncated" | "next_page" | "pools" | "warnings" | "errors"
+> {
   const raw = records(response.data);
-  const pools = raw.map(slimPool);
+  const availablePools = raw.map(slimPool);
+  const pools = availablePools.slice(0, limit);
   return {
     count: pools.length,
+    available_on_page: availablePools.length,
+    truncated: pools.length < availablePools.length,
     next_page: raw.length >= PAGE_SIZE ? page + 1 : null,
     pools,
     warnings: collectWarnings(response.warnings, response.data),

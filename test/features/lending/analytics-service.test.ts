@@ -99,6 +99,33 @@ describe("LendingAnalyticsService", () => {
     expect(client.calls).toHaveLength(0);
   });
 
+  it("chooses a product-specific metric when history metric is omitted", async () => {
+    const client = new RecordingDataApiClient({
+      "/defi/lending/variable-rate/markets/history": historyResponse("supplyApy"),
+      "/defi/lending/vaults/history": historyResponse("netApy"),
+    });
+    const service = new LendingAnalyticsService(client);
+
+    await service.getHistory({
+      product_type: "variable_rate_market",
+      identifier: MARKET_ID,
+      variable_rate_protocol: "morpho_blue",
+      vault_version: "V2",
+      interval: "day",
+      points_limit: 5,
+    });
+    await service.getHistory({
+      product_type: "vault",
+      identifier: VAULT_ADDRESS,
+      variable_rate_protocol: "morpho_blue",
+      vault_version: "V2",
+      interval: "day",
+      points_limit: 5,
+    });
+
+    expect(client.calls.map((call) => call.query?.metric)).toEqual(["supplyApy", "netApy"]);
+  });
+
   it("returns compact fixed-rate orderbook levels and sends one bounded request", async () => {
     const client = new RecordingDataApiClient({
       "/defi/lending/fixed-rate/markets/orderbook": {
@@ -179,4 +206,18 @@ class RecordingDataApiClient implements DataApiClient {
   post<T>(): Promise<DataApiResult<T>> {
     return Promise.reject(new Error("Unexpected POST"));
   }
+}
+
+function historyResponse(metric: string): Omit<DataApiResult<unknown>, "requestId"> {
+  return {
+    data: {
+      protocol: "morpho",
+      metric,
+      value_unit: "ratio",
+      start_time: "2026-08-01T00:00:00Z",
+      end_time: "2026-08-11T00:00:00Z",
+      points: [],
+    },
+    warnings: [],
+  };
 }

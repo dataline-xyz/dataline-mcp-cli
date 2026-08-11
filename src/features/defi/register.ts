@@ -22,7 +22,7 @@ export function registerDefiPoolTools(server: McpServer, service: DefiPoolsServi
     {
       title: "List DeFi pools",
       description:
-        "Browse and rank Base-chain DeFi pools by reserve, FDV, token price, or creation time, with optional DEX filters.",
+        "Browse and rank Base-chain DeFi pools by reserve, FDV, token price, or creation time. Returns 5 pools by default; set limit=20 for the full provider page.",
       inputSchema: defiPoolListInputSchema,
       outputSchema: defiPoolListOutputSchema,
       annotations: READ_ONLY_ANNOTATIONS,
@@ -35,7 +35,7 @@ export function registerDefiPoolTools(server: McpServer, service: DefiPoolsServi
     {
       title: "Search DeFi pools",
       description:
-        "Find DeFi pools by pool address, token contract, symbol, or token name. Search Base by default or omit the network filter with network=all.",
+        "Find DeFi pools by pool address, token contract, symbol, or token name. Searches Base and returns 5 pools by default; use network=all for other chains or limit=20 for the full page.",
       inputSchema: defiPoolSearchInputSchema,
       outputSchema: defiPoolSearchOutputSchema,
       annotations: READ_ONLY_ANNOTATIONS,

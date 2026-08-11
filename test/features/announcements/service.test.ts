@@ -3,6 +3,7 @@ import { describe, expect, it } from "vitest";
 import type { DataApiClient, DataApiResult, QueryParameters } from "../../../src/data-api/types.js";
 import { AnnouncementsService } from "../../../src/features/announcements/service.js";
 import type { JsonRecord } from "../../../src/features/shared/records.js";
+import { ToolInputError } from "../../../src/mcp/tool-result.js";
 
 describe("AnnouncementsService", () => {
   it("passes explicit enum filters and keeps list records compact", async () => {
@@ -91,6 +92,23 @@ describe("AnnouncementsService", () => {
     });
     expect(output.announcement.content).toHaveLength(3000);
     expect(output.announcement.content?.endsWith("...")).toBe(true);
+  });
+
+  it("rejects an inverted time range before contacting Data API", async () => {
+    const client = new RecordingDataApiClient({});
+
+    await expect(
+      new AnnouncementsService(client).search({
+        source: "All",
+        category: "All",
+        query: "",
+        start_time: "2026-08-11T12:00:00Z",
+        end_time: "2026-08-10T12:00:00Z",
+        page: 1,
+        limit: 5,
+      }),
+    ).rejects.toBeInstanceOf(ToolInputError);
+    expect(client.calls).toHaveLength(0);
   });
 });
 

@@ -3,9 +3,26 @@ import { describe, expect, it } from "vitest";
 import type { DataApiClient, DataApiResult, QueryParameters } from "../../../src/data-api/types.js";
 import { PerpetualsService } from "../../../src/features/perpetuals/service.js";
 import type { JsonRecord } from "../../../src/features/shared/records.js";
-import type { ToolInputError } from "../../../src/mcp/tool-result.js";
+import { ToolInputError } from "../../../src/mcp/tool-result.js";
 
 describe("PerpetualsService", () => {
+  it("rejects an inverted history time range before contacting Data API", async () => {
+    const client = new RecordingDataApiClient({});
+
+    await expect(
+      new PerpetualsService(client).getHistory({
+        metric: "funding_rate",
+        base: "BTC",
+        quote: "USDT",
+        venue: "binance",
+        interval: "1h",
+        limit: 5,
+        start_time: "2026-08-11T12:00:00Z",
+        end_time: "2026-08-10T12:00:00Z",
+      }),
+    ).rejects.toBeInstanceOf(ToolInputError);
+    expect(client.calls).toHaveLength(0);
+  });
   it("compacts current venue metrics and preserves availability warnings", async () => {
     const client = new RecordingDataApiClient({
       "/v1/crypto/perpetuals/metrics": {

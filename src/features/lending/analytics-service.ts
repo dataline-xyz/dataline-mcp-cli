@@ -4,6 +4,7 @@ import { compactRecord, firstString, records, type JsonRecord } from "../shared/
 import type {
   FixedRateOrderbookInput,
   FixedRateOrderbookOutput,
+  LENDING_HISTORY_METRICS,
   LendingHistoryInput,
   LendingHistoryOutput,
 } from "./analytics-schema.js";
@@ -21,8 +22,9 @@ export class LendingAnalyticsService {
   }
 
   async getHistory(input: LendingHistoryInput): Promise<LendingHistoryOutput> {
-    validateHistoryInput(input);
-    const request = historyRequest(input);
+    const metric = historyMetric(input);
+    validateHistoryInput(input, metric);
+    const request = historyRequest(input, metric);
     const response = await this.#client.get<JsonRecord>(request.path, request.query);
     const rawPoints = records(response.data.points);
     const allPoints = rawPoints.flatMap((item) => {
@@ -92,7 +94,10 @@ export class LendingAnalyticsService {
   }
 }
 
-function historyRequest(input: LendingHistoryInput): {
+function historyRequest(
+  input: LendingHistoryInput,
+  metric: (typeof LENDING_HISTORY_METRICS)[number],
+): {
   path: string;
   query: Record<string, string | undefined>;
 } {
@@ -103,7 +108,7 @@ function historyRequest(input: LendingHistoryInput): {
           network: "base",
           protocol: input.variable_rate_protocol,
           market_id: input.identifier,
-          metric: input.metric,
+          metric,
           interval: input.interval,
           start_time: input.start_time,
           end_time: input.end_time,
@@ -114,7 +119,7 @@ function historyRequest(input: LendingHistoryInput): {
         query: {
           vault_address: input.identifier,
           version: input.vault_version,
-          metric: input.metric,
+          metric,
           interval: input.interval,
           start_time: input.start_time,
           end_time: input.end_time,
@@ -122,7 +127,14 @@ function historyRequest(input: LendingHistoryInput): {
       };
 }
 
-function validateHistoryInput(input: LendingHistoryInput): void {
+function historyMetric(input: LendingHistoryInput): (typeof LENDING_HISTORY_METRICS)[number] {
+  return input.metric ?? (input.product_type === "vault" ? "netApy" : "supplyApy");
+}
+
+function validateHistoryInput(
+  input: LendingHistoryInput,
+  metric: (typeof LENDING_HISTORY_METRICS)[number],
+): void {
   validateTimeRange(input.start_time, input.end_time);
   if (input.product_type === "vault") {
     if (!ADDRESS_PATTERN.test(input.identifier)) {
@@ -132,8 +144,8 @@ function validateHistoryInput(input: LendingHistoryInput): void {
         "use_vault_address_from_find_lending_vaults",
       );
     }
-    if (!VAULT_HISTORY_METRICS.some((metric) => metric === input.metric)) {
-      throw unsupportedMetric(input.product_type, input.metric, VAULT_HISTORY_METRICS);
+    if (!VAULT_HISTORY_METRICS.some((candidate) => candidate === metric)) {
+      throw unsupportedMetric(input.product_type, metric, VAULT_HISTORY_METRICS);
     }
     return;
   }
@@ -145,13 +157,13 @@ function validateHistoryInput(input: LendingHistoryInput): void {
       "use_market_id_from_find_variable_rate_lending_markets",
     );
   }
-  if (!VARIABLE_HISTORY_METRICS.some((metric) => metric === input.metric)) {
-    throw unsupportedMetric(input.product_type, input.metric, VARIABLE_HISTORY_METRICS);
+  if (!VARIABLE_HISTORY_METRICS.some((candidate) => candidate === metric)) {
+    throw unsupportedMetric(input.product_type, metric, VARIABLE_HISTORY_METRICS);
   }
   if (
     input.variable_rate_protocol === "aave_v3" &&
-    input.metric !== "supplyApy" &&
-    input.metric !== "borrowApy"
+    metric !== "supplyApy" &&
+    metric !== "borrowApy"
   ) {
     throw new ToolInputError(
       "unsupported_metric",
@@ -163,7 +175,7 @@ function validateHistoryInput(input: LendingHistoryInput): void {
 
 function unsupportedMetric(
   productType: LendingHistoryInput["product_type"],
-  metric: string,
+  metric: (typeof LENDING_HISTORY_METRICS)[number],
   supported: readonly string[],
 ): ToolInputError {
   return new ToolInputError(

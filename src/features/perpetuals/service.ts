@@ -45,6 +45,7 @@ export class PerpetualsService {
   }
 
   async getHistory(input: PerpetualHistoryInput): Promise<PerpetualHistoryOutput> {
+    validateTimeRange(input.start_time, input.end_time);
     if (input.metric === "open_interest" && input.venue === "hyperliquid") {
       throw new ToolInputError(
         "feature_not_implemented",
@@ -69,6 +70,16 @@ export class PerpetualsService {
       interval: input.metric === "open_interest" ? input.interval : undefined,
     });
     return historyOutput(response, input, base, quote);
+  }
+}
+
+function validateTimeRange(startTime: string | undefined, endTime: string | undefined): void {
+  if (startTime && endTime && Date.parse(endTime) < Date.parse(startTime)) {
+    throw new ToolInputError(
+      "invalid_time_range",
+      "end_time must be later than or equal to start_time.",
+      "fix_time_range",
+    );
   }
 }
 
