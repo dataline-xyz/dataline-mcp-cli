@@ -37,6 +37,13 @@ try {
     "get_prediction_event",
     "list_defi_pools",
     "search_defi_pools",
+    "find_variable_rate_lending_markets",
+    "find_lending_vaults",
+    "find_fixed_rate_lending_markets",
+    "get_lending_product_detail",
+    "get_lending_positions",
+    "get_lending_history",
+    "get_fixed_rate_lending_orderbook",
   ];
   const actualTools = tools.tools.map((tool) => tool.name);
   for (const tool of expectedTools) {

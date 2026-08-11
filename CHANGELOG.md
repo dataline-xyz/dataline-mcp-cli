@@ -29,6 +29,9 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
   event IDs, slug-first lookup, and local child-market sorting/paging over one Data API response.
 - Read-only DeFi pool list/search tools with current Base DEX and sort enums, compact pool records,
   explicit cross-network search semantics, and page continuation hints.
+- Read-only Base lending discovery, product-detail, history, fixed-rate orderbook, and public
+  wallet-position tools for Morpho Blue, Morpho Midnight, Morpho Vaults, and Aave V3, with
+  compact-by-default outputs, explicit detail levels, bounded defaults, and continuation hints.
 - CI, package-content validation, contribution guidance, architecture notes, and security reporting
   policy.
 - MCP Registry metadata and npm trusted-publishing release automation.
@@ -37,3 +40,6 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 - x402 now defaults to Base mainnet with an explicit per-request USDC payment ceiling, while route
   prices remain authoritative at Control API and are enforced by Data API payment challenges.
+- x402 payment rejections and access-policy failures now retain their status, request ID, and
+  actionable reason in MCP tool errors instead of appearing as malformed or unreachable API
+  responses.

@@ -75,6 +75,8 @@ ceiling, not a fixed client-side price; Data API challenges above it are rejecte
 - Discovery: crypto projects and exchange announcements
 - Prediction markets: Polymarket event search and detail
 - DeFi: Base pool ranking and cross-network pool search
+- Lending: Morpho Blue and Aave V3 variable-rate markets, Morpho vaults and fixed-rate markets,
+  history, orderbooks, detail, and public wallet positions
 
 Run `dataline --help` for CLI commands. See [Development](docs/development.md),
 [Architecture](docs/architecture.md), and [Authentication](docs/authentication.md) for contributor
