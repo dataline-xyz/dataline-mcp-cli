@@ -57,6 +57,7 @@
     "format:check": "prettier --check .",
     "inspect": "npm run build && npx @modelcontextprotocol/inspector node dist/cli.js mcp serve",
     "lint": "eslint .",
+    "live:check": "node --env-file-if-exists=.env scripts/live-conformance.mjs",
     "pack:check": "node scripts/pack-check.mjs",
     "prepack": "npm run build",
     "release:check": "node scripts/verify-release.mjs",
