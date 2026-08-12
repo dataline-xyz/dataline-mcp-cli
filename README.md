@@ -14,13 +14,13 @@ configuration.
 No global installation is required:
 
 ```bash
-npx -y @dataline/mcp@latest --version
+npx -y @dataline-xyz/mcp@latest --version
 ```
 
 For a persistent CLI installation:
 
 ```bash
-npm install --global @dataline/mcp
+npm install --global @dataline-xyz/mcp
 dataline --version
 ```
 
@@ -33,13 +33,13 @@ Add the server to any client that supports local stdio MCP servers. OAuth is the
   "mcpServers": {
     "dataline": {
       "command": "npx",
-      "args": ["-y", "@dataline/mcp@latest", "mcp", "serve"]
+      "args": ["-y", "@dataline-xyz/mcp@latest", "mcp", "serve"]
     }
   }
 }
 ```
 
-Pin `@dataline/mcp` to an exact version instead of `latest` when reproducible installations are
+Pin `@dataline-xyz/mcp` to an exact version instead of `latest` when reproducible installations are
 required. Credentials stay in the local MCP process and are sent only to the configured Dataline
 Data API.
 
@@ -55,8 +55,8 @@ stored outside the repository in the platform config directory. The CLI and MCP 
 same session and refresh it automatically:
 
 ```bash
-npx -y @dataline/mcp@latest auth login
-npx -y @dataline/mcp@latest auth status
+npx -y @dataline-xyz/mcp@latest auth login
+npx -y @dataline-xyz/mcp@latest auth status
 ```
 
 Use `--no-open` to print the authorization URL instead of opening a browser. No environment
@@ -68,10 +68,10 @@ Create a Dataline API key, then store it in a named local profile without puttin
 process arguments or MCP JSON:
 
 ```bash
-npx -y @dataline/mcp@latest profile set api-key --auth-mode api_key
-npx -y @dataline/mcp@latest profile use api-key
-printf '%s' "$DATALINE_API_KEY" | npx -y @dataline/mcp@latest auth set-api-key --stdin
-npx -y @dataline/mcp@latest auth status
+npx -y @dataline-xyz/mcp@latest profile set api-key --auth-mode api_key
+npx -y @dataline-xyz/mcp@latest profile use api-key
+printf '%s' "$DATALINE_API_KEY" | npx -y @dataline-xyz/mcp@latest auth set-api-key --stdin
+npx -y @dataline-xyz/mcp@latest auth status
 ```
 
 For non-interactive environments, inject the key through the MCP client's secret or environment
@@ -82,7 +82,7 @@ configuration:
   "mcpServers": {
     "dataline": {
       "command": "npx",
-      "args": ["-y", "@dataline/mcp@latest", "mcp", "serve"],
+      "args": ["-y", "@dataline-xyz/mcp@latest", "mcp", "serve"],
       "env": {
         "DATALINE_AUTH_MODE": "api_key",
         "DATALINE_API_KEY": "<your-api-key>"
@@ -105,7 +105,7 @@ client's secret or environment configuration:
   "mcpServers": {
     "dataline": {
       "command": "npx",
-      "args": ["-y", "@dataline/mcp@latest", "mcp", "serve"],
+      "args": ["-y", "@dataline-xyz/mcp@latest", "mcp", "serve"],
       "env": {
         "DATALINE_AUTH_MODE": "x402",
         "DATALINE_X402_PRIVATE_KEY": "0x<private-key>",

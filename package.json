@@ -1,5 +1,5 @@
 {
-  "name": "@dataline/mcp",
+  "name": "@dataline-xyz/mcp",
   "version": "0.1.0",
   "description": "Local MCP server and CLI for Dataline market data.",
   "mcpName": "io.github.dataline-xyz/dataline",

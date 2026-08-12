@@ -12,7 +12,7 @@
     {
       "registryType": "npm",
       "registryBaseUrl": "https://registry.npmjs.org",
-      "identifier": "@dataline/mcp",
+      "identifier": "@dataline-xyz/mcp",
       "version": "0.1.0",
       "transport": {
         "type": "stdio"

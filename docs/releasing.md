@@ -1,8 +1,8 @@
 # Releasing
 
-`@dataline/mcp` is a public package in the npm `dataline` scope. The npm organization is separate
-from the `dataline-xyz` GitHub organization: the publishing account must belong to both places with
-the required permissions.
+`@dataline-xyz/mcp` is a public package in the npm `dataline-xyz` scope. The npm organization is
+separate from the `dataline-xyz` GitHub organization: the publishing account must belong to both
+places with the required permissions.
 
 ## First npm Release
 
@@ -37,9 +37,9 @@ npm publish --access public
 6. Verify the registry package and a clean install:
 
 ```bash
-npm view @dataline/mcp@0.1.0 version dist.integrity repository.url
-npx --yes --package @dataline/mcp@0.1.0 dataline --version
-npx --yes --package @dataline/mcp@0.1.0 dataline config show
+npm view @dataline-xyz/mcp@0.1.0 version dist.integrity repository.url
+npx --yes --package @dataline-xyz/mcp@0.1.0 dataline --version
+npx --yes --package @dataline-xyz/mcp@0.1.0 dataline config show
 ```
 
 7. Tag the exact published commit only after verification:
