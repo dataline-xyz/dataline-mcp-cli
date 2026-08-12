@@ -8,26 +8,39 @@ import { StdioClientTransport } from "@modelcontextprotocol/sdk/client/stdio.js"
 const PROD_DATA_API_URL = "https://data-api.dataline.xyz";
 const TEST_WALLET = "0x161be081B853A4F2B26F48Ad45659aFC31874882";
 const BASE_USDC = "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913";
+const SUPPORTED_AUTH_MODES = new Set(["api_key", "oauth"]);
 
 if (process.env.DATALINE_LIVE_TESTS !== "1") {
   throw new Error("Set DATALINE_LIVE_TESTS=1 to run credit-consuming production checks.");
 }
 
+const authMode = process.env.DATALINE_LIVE_AUTH_MODE?.trim() || "api_key";
+if (!SUPPORTED_AUTH_MODES.has(authMode)) {
+  throw new Error("DATALINE_LIVE_AUTH_MODE must be api_key or oauth.");
+}
+
 const apiKey = process.env.DATALINE_API_KEY_PROD?.trim() || process.env.DATALINE_API_KEY?.trim();
-if (!apiKey) {
+if (authMode === "api_key" && !apiKey) {
   throw new Error("Set DATALINE_API_KEY_PROD or DATALINE_API_KEY before running live checks.");
 }
 
 const dataApiUrl = process.env.DATALINE_DATA_API_URL?.trim() || PROD_DATA_API_URL;
+const transportEnv = {
+  ...process.env,
+  DATALINE_AUTH_MODE: authMode,
+  DATALINE_DATA_API_URL: dataApiUrl,
+};
+if (authMode === "api_key") {
+  transportEnv.DATALINE_API_KEY = apiKey;
+} else {
+  delete transportEnv.DATALINE_API_KEY;
+  delete transportEnv.DATALINE_API_KEY_PROD;
+}
+
 const transport = new StdioClientTransport({
   command: process.execPath,
   args: ["dist/cli.js", "mcp", "serve"],
-  env: {
-    ...process.env,
-    DATALINE_AUTH_MODE: "api_key",
-    DATALINE_API_KEY: apiKey,
-    DATALINE_DATA_API_URL: dataApiUrl,
-  },
+  env: transportEnv,
   stderr: "pipe",
 });
 const client = new Client({ name: "dataline-live-conformance", version: "0.0.0" });
@@ -39,7 +52,7 @@ try {
 
   const tools = await client.listTools();
   process.stdout.write(
-    `Dataline live conformance: ${tools.tools.length} tools, ${new URL(dataApiUrl).origin}\n`,
+    `Dataline live conformance: ${tools.tools.length} tools, ${authMode}, ${new URL(dataApiUrl).origin}\n`,
   );
 
   await check("cex-price", "get_crypto_cex_price", {
