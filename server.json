@@ -65,6 +65,11 @@
           "name": "DATALINE_DATA_API_URL",
           "description": "Dataline Data API origin.",
           "default": "https://data-api.dataline.xyz"
+        },
+        {
+          "name": "DATALINE_CONTROL_API_URL",
+          "description": "Optional Control API origin for the pricing catalog.",
+          "isRequired": false
         }
       ]
     }

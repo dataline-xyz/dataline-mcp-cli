@@ -83,6 +83,24 @@ export { registerProjectTools } from "./features/projects/register.js";
 export { ProjectsService } from "./features/projects/service.js";
 export { registerPredictionTools } from "./features/prediction/register.js";
 export { PredictionService } from "./features/prediction/service.js";
+export {
+  DATALINE_TOOL_NAMES,
+  TOOL_PRICING_DEFINITIONS,
+  isDatalineToolName,
+  type DatalineToolName,
+  type ToolPricingDefinition,
+  type ToolRouteBinding,
+} from "./features/pricing/catalog.js";
+export { registerPricingTools } from "./features/pricing/register.js";
+export {
+  DEFAULT_CONTROL_API_URL,
+  DEFAULT_PRICING_CACHE_TTL_MS,
+  PricingService,
+  parseControlApiUrl,
+  resolveControlApiUrl,
+  type PricingServiceOptions,
+  type ToolPricingReader,
+} from "./features/pricing/service.js";
 export { createDatalineMcpServer } from "./mcp/server.js";
 export type { DatalineMcpServerOptions } from "./mcp/server.js";
 export { VERSION } from "./version.js";

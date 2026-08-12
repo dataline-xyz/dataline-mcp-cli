@@ -32,6 +32,8 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 - Read-only Base lending discovery, product-detail, history, fixed-rate orderbook, and public
   wallet-position tools for Morpho Blue, Morpho Midnight, Morpho Vaults, and Aave V3, with
   compact-by-default outputs, explicit detail levels, bounded defaults, and continuation hints.
+- Free tool-pricing discovery through MCP and CLI, backed by the Control API catalog with a
+  five-minute cache and explicit parameter-to-route conditions for polymorphic tools.
 - CI, package-content validation, contribution guidance, architecture notes, and security reporting
   policy.
 - MCP Registry metadata and npm trusted-publishing release automation.

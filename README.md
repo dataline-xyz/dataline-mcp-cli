@@ -46,6 +46,7 @@ Credentials stay in the local MCP process and are sent only to the configured Da
 | `DATALINE_PROFILE`              | active profile                  | Named local profile              |
 | `DATALINE_CONFIG_HOME`          | platform config directory       | Override local profile storage   |
 | `DATALINE_DATA_API_URL`         | `https://data-api.dataline.xyz` | Data API origin                  |
+| `DATALINE_CONTROL_API_URL`      | inferred from Data API URL      | Pricing catalog origin           |
 | `DATALINE_REQUEST_TIMEOUT_MS`   | `30000`                         | Upstream timeout in milliseconds |
 | `DATALINE_X402_PRIVATE_KEY`     | none                            | x402 wallet private key          |
 | `DATALINE_X402_NETWORK`         | `eip155:8453`                   | Base network in CAIP-2 format    |
@@ -68,6 +69,18 @@ and never fall back silently.
 x402 defaults to Base mainnet and spends real USDC. Its `0.001` USD default is a per-request safety
 ceiling, not a fixed client-side price; Data API challenges above it are rejected before signing.
 
+Inspect current costs without making a paid Data API request:
+
+```bash
+dataline pricing
+dataline pricing get_crypto_cex_price get_lending_history
+```
+
+Agents can call the free `get_tool_pricing` MCP tool. It reports credit costs, x402 USD prices, and
+the parameter condition for tools that select between multiple metered routes. Pricing is read from
+Control API and cached for five minutes. Standard Dataline test and production subdomains are
+inferred from `DATALINE_DATA_API_URL`; custom deployments can set `DATALINE_CONTROL_API_URL`.
+
 ## Tools
 
 - Crypto: CEX prices, DEX token prices, and OHLCV candles
@@ -77,6 +90,7 @@ ceiling, not a fixed client-side price; Data API challenges above it are rejecte
 - DeFi: Base pool ranking and cross-network pool search
 - Lending: Morpho Blue and Aave V3 variable-rate markets, Morpho vaults and fixed-rate markets,
   history, orderbooks, detail, and public wallet positions
+- Pricing: current credit and x402 costs for every MCP tool
 
 Run `dataline --help` for CLI commands. See [Development](docs/development.md),
 [Architecture](docs/architecture.md), and [Authentication](docs/authentication.md) for contributor

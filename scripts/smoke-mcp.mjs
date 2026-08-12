@@ -24,6 +24,7 @@ try {
 
   const tools = await client.listTools();
   const expectedTools = [
+    "get_tool_pricing",
     "get_crypto_cex_price",
     "get_crypto_dex_price",
     "get_crypto_ohlcv",

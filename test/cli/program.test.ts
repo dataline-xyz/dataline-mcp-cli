@@ -26,6 +26,7 @@ describe("CLI", () => {
       profile: "default",
       authMode: "oauth",
       dataApiUrl: "https://data-api.dataline.xyz/",
+      controlApiUrl: "https://control-api.dataline.xyz/",
       requestTimeoutMs: 30_000,
       oauth: {
         issuer: "https://control-api.dataline.xyz/",
@@ -125,6 +126,26 @@ describe("CLI", () => {
       runCli(configDirectory, ["auth", "status"], "", env).then(JSON.parse),
     ).resolves.toMatchObject({ authenticated: true, source: "environment" });
   });
+
+  it("shows filtered tool pricing through the CLI", async () => {
+    const getToolPricing = vi.fn().mockResolvedValue({
+      as_of: "2026-08-12T03:00:00.000Z",
+      cache_ttl_seconds: 300,
+      tools: [],
+      warnings: [],
+      errors: [],
+    });
+    const output = await runCli(
+      configDirectory,
+      ["pricing", "get_crypto_cex_price"],
+      "",
+      {},
+      { pricingService: { getToolPricing } },
+    );
+
+    expect(JSON.parse(output)).toMatchObject({ cache_ttl_seconds: 300, tools: [] });
+    expect(getToolPricing).toHaveBeenCalledWith(["get_crypto_cex_price"]);
+  });
 });
 
 async function runCli(
@@ -132,9 +153,11 @@ async function runCli(
   arguments_: string[],
   input = "",
   env: NodeJS.ProcessEnv = {},
+  dependencies: Partial<CliDependencies> = {},
 ): Promise<string> {
   let output = "";
   const program = createCli({
+    ...dependencies,
     env: { DATALINE_CONFIG_HOME: configDirectory, ...env },
     stdin: Readable.from([input]),
     stdout: {

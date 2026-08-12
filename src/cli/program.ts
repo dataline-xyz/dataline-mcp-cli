@@ -21,6 +21,12 @@ import {
 } from "../config/profile-store.js";
 import { resolveRuntimeContext } from "../config/resolve.js";
 import { parseAuthMode, parseDataApiUrl, parseRequestTimeoutMs } from "../config/runtime.js";
+import { isDatalineToolName, type DatalineToolName } from "../features/pricing/catalog.js";
+import {
+  PricingService,
+  resolveControlApiUrl,
+  type ToolPricingReader,
+} from "../features/pricing/service.js";
 import { serveStdio } from "../mcp/stdio.js";
 import { VERSION } from "../version.js";
 import { readSecretFromStdin } from "./stdin.js";
@@ -32,6 +38,7 @@ export interface CliDependencies {
   stderr?: Pick<NodeJS.WriteStream, "write">;
   profileStore?: ProfileStore;
   secretStore?: SecretStore;
+  pricingService?: ToolPricingReader;
   oauthLogin?: (options: OAuthLoginOptions) => ReturnType<typeof loginWithOAuth>;
 }
 
@@ -88,6 +95,7 @@ export function createCli(dependencies: CliDependencies = { stdout: process.stdo
         profile: context.profileName,
         authMode: context.config.authMode,
         dataApiUrl: context.config.dataApiUrl.toString(),
+        controlApiUrl: resolveControlApiUrl(context.config.dataApiUrl, env).toString(),
         requestTimeoutMs: context.config.requestTimeoutMs,
         ...(context.config.authMode === "oauth"
           ? {
@@ -100,6 +108,22 @@ export function createCli(dependencies: CliDependencies = { stdout: process.stdo
           : {}),
         ...(context.config.authMode === "x402" ? { x402: loadX402PolicyConfig(env) } : {}),
       });
+    });
+
+  program
+    .command("pricing")
+    .argument("[tools...]", "MCP tool names; omit to show all tools")
+    .description("Show current credit costs and x402 USD prices as JSON.")
+    .action(async (tools: string[]) => {
+      const toolNames = parsePricingToolNames(tools);
+      const context = await resolveRuntimeContext(env, { profileStore, secretStore });
+      const pricingService =
+        dependencies.pricingService ??
+        new PricingService({
+          controlApiUrl: resolveControlApiUrl(context.config.dataApiUrl, env),
+          timeoutMs: context.config.requestTimeoutMs,
+        });
+      writeJson(dependencies.stdout, await pricingService.getToolPricing(toolNames));
     });
 
   const profile = program.command("profile").description("Manage named Dataline profiles.");
@@ -277,6 +301,14 @@ function oauthDefaults(profile: ProfileSettings): OAuthRuntimeDefaults {
     ...(profile.oauthScope ? { scope: profile.oauthScope } : {}),
     ...(profile.oauthResource ? { resource: profile.oauthResource } : {}),
   };
+}
+
+function parsePricingToolNames(values: readonly string[]): DatalineToolName[] {
+  const unknown = values.filter((value) => !isDatalineToolName(value));
+  if (unknown.length > 0) {
+    throw new Error(`Unknown Dataline MCP tool: ${unknown.join(", ")}.`);
+  }
+  return values as DatalineToolName[];
 }
 
 function parseCallbackPort(value: string | undefined): number {

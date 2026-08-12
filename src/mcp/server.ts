@@ -19,6 +19,12 @@ import { LendingAnalyticsService } from "../features/lending/analytics-service.j
 import { LendingService } from "../features/lending/service.js";
 import { registerPerpetualTools } from "../features/perpetuals/register.js";
 import { PerpetualsService } from "../features/perpetuals/service.js";
+import { registerPricingTools } from "../features/pricing/register.js";
+import {
+  PricingService,
+  resolveControlApiUrl,
+  type ToolPricingReader,
+} from "../features/pricing/service.js";
 import { registerProjectTools } from "../features/projects/register.js";
 import { ProjectsService } from "../features/projects/service.js";
 import { registerPredictionTools } from "../features/prediction/register.js";
@@ -28,6 +34,7 @@ import { VERSION } from "../version.js";
 const MCP_INSTRUCTIONS = [
   "Dataline provides read-only market data.",
   "Prefer compact discovery results before detail calls.",
+  "Use get_tool_pricing when the user or agent needs current credit or x402 costs.",
   "Preserve upstream warnings and errors when explaining coverage or freshness.",
 ].join(" ");
 
@@ -36,7 +43,9 @@ export interface DatalineMcpServerOptions {
   version?: string;
   dataApiClient?: DataApiClient;
   credentialProvider?: CredentialProvider;
+  pricingService?: ToolPricingReader;
   fetch?: typeof globalThis.fetch;
+  controlFetch?: typeof globalThis.fetch;
   env?: NodeJS.ProcessEnv;
 }
 
@@ -68,7 +77,15 @@ export function createDatalineMcpServer(options: DatalineMcpServerOptions): McpS
       timeoutMs: options.config.requestTimeoutMs,
       version,
     });
+  const pricingService =
+    options.pricingService ??
+    new PricingService({
+      controlApiUrl: resolveControlApiUrl(options.config.dataApiUrl, env),
+      fetch: options.controlFetch ?? globalThis.fetch,
+      timeoutMs: options.config.requestTimeoutMs,
+    });
 
+  registerPricingTools(server, pricingService);
   registerCryptoTools(server, new CryptoService(dataApiClient));
   registerDefiPoolTools(server, new DefiPoolsService(dataApiClient));
   registerLendingTools(
