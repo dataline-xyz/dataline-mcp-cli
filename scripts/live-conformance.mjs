@@ -8,7 +8,7 @@ import { StdioClientTransport } from "@modelcontextprotocol/sdk/client/stdio.js"
 const PROD_DATA_API_URL = "https://data-api.dataline.xyz";
 const TEST_WALLET = "0x161be081B853A4F2B26F48Ad45659aFC31874882";
 const BASE_USDC = "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913";
-const SUPPORTED_AUTH_MODES = new Set(["api_key", "oauth"]);
+const SUPPORTED_AUTH_MODES = new Set(["api_key", "oauth", "x402"]);
 
 if (process.env.DATALINE_LIVE_TESTS !== "1") {
   throw new Error("Set DATALINE_LIVE_TESTS=1 to run credit-consuming production checks.");
@@ -16,12 +16,15 @@ if (process.env.DATALINE_LIVE_TESTS !== "1") {
 
 const authMode = process.env.DATALINE_LIVE_AUTH_MODE?.trim() || "api_key";
 if (!SUPPORTED_AUTH_MODES.has(authMode)) {
-  throw new Error("DATALINE_LIVE_AUTH_MODE must be api_key or oauth.");
+  throw new Error("DATALINE_LIVE_AUTH_MODE must be api_key, oauth, or x402.");
 }
 
 const apiKey = process.env.DATALINE_API_KEY_PROD?.trim() || process.env.DATALINE_API_KEY?.trim();
 if (authMode === "api_key" && !apiKey) {
   throw new Error("Set DATALINE_API_KEY_PROD or DATALINE_API_KEY before running live checks.");
+}
+if (authMode === "x402" && !process.env.DATALINE_X402_PRIVATE_KEY?.trim()) {
+  throw new Error("Set DATALINE_X402_PRIVATE_KEY before running x402 live checks.");
 }
 
 const dataApiUrl = process.env.DATALINE_DATA_API_URL?.trim() || PROD_DATA_API_URL;
@@ -35,6 +38,12 @@ if (authMode === "api_key") {
 } else {
   delete transportEnv.DATALINE_API_KEY;
   delete transportEnv.DATALINE_API_KEY_PROD;
+}
+if (authMode !== "x402") {
+  delete transportEnv.DATALINE_X402_PRIVATE_KEY;
+}
+if (authMode !== "oauth") {
+  delete transportEnv.DATALINE_ACCESS_TOKEN;
 }
 
 const transport = new StdioClientTransport({
