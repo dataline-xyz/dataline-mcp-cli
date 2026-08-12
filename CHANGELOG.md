@@ -40,6 +40,8 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ### Changed
 
+- Expanded public installation and authentication guidance, added a manual first-release checklist,
+  and normalized npm package metadata for workstation publishing.
 - x402 now defaults to Base mainnet with an explicit per-request USDC payment ceiling, while route
   prices remain authoritative at Control API and are enforced by Data API payment challenges.
 - x402 payment rejections and access-policy failures now retain their status, request ID, and

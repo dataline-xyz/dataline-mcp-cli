@@ -43,9 +43,9 @@ fields and new tools are normally minor changes.
 
 ## Releasing
 
-Release automation publishes the package to npm and its metadata to the MCP Registry. Before the
-first release, configure `release.yml` as the trusted publisher for `@dataline/mcp` on npm. A GitHub
-release tag must exactly match the package version, for example `v0.1.0`.
+The first npm release is published manually because npm requires a package to exist before a trusted
+publisher can be configured. Later releases can use the existing GitHub OIDC workflow. Follow
+[Releasing](releasing.md) for the exact checklist and the first-release boundary.
 
 ## Dependency Note
 
