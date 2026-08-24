@@ -46,6 +46,11 @@ describe("lending MCP tools", () => {
       default: "summary",
       enum: ["summary", "detailed"],
     });
+    const vaultTool = lendingTools[1];
+    expect(vaultTool?.inputSchema.properties?.version).toMatchObject({
+      default: "V2",
+      enum: ["V2", "V1"],
+    });
   });
 
   it("applies defaults and returns compact structured market results", async () => {

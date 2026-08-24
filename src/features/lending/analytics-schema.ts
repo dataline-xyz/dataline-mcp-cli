@@ -45,7 +45,9 @@ export const lendingHistoryInputSchema = {
     .trim()
     .min(1)
     .max(130)
-    .describe("Market ID for a variable-rate market, or vault contract address for a vault."),
+    .describe(
+      "Morpho market ID, Aave underlying-token or market:token ID, or vault address, as returned by a lending discovery tool.",
+    ),
   variable_rate_protocol: z
     .enum(VARIABLE_RATE_PROTOCOLS)
     .default("morpho_blue")
@@ -61,8 +63,16 @@ export const lendingHistoryInputSchema = {
       "Variable-rate metrics: supplyApy, borrowApy, totalSuppliedUsd, totalBorrowedUsd, liquidityUsd, utilization, assetPriceUsd. Vault metrics: apy, netApy, totalAssetsUsd, idleAssetsUsd, sharePrice. Omit to use supplyApy for a variable-rate market or netApy for a vault.",
     ),
   interval: z.enum(LENDING_HISTORY_INTERVALS).default("day"),
-  start_time: z.string().datetime({ offset: true }).optional(),
-  end_time: z.string().datetime({ offset: true }).optional(),
+  start_time: z
+    .string()
+    .datetime({ offset: true })
+    .describe("Inclusive history start. History is limited to 365 days; defaults to 30 days ago.")
+    .optional(),
+  end_time: z
+    .string()
+    .datetime({ offset: true })
+    .describe("Inclusive history end; defaults to now and cannot be in the future for Aave V3.")
+    .optional(),
   points_limit: z
     .number()
     .int()

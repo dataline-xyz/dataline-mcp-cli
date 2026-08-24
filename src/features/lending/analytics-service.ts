@@ -1,6 +1,7 @@
 import type { DataApiClient } from "../../data-api/types.js";
 import { ToolInputError } from "../../mcp/tool-result.js";
 import { compactRecord, firstString, records, type JsonRecord } from "../shared/records.js";
+import { isAaveMarketId, isEvmAddress, isMorphoMarketId } from "./identifiers.js";
 import type {
   FixedRateOrderbookInput,
   FixedRateOrderbookOutput,
@@ -11,8 +12,9 @@ import type {
 import { VARIABLE_HISTORY_METRICS, VAULT_HISTORY_METRICS } from "./analytics-schema.js";
 import { lendingSourceTime, lendingWarnings } from "./normalize.js";
 
-const MARKET_ID_PATTERN = /^0x[a-fA-F0-9]{64}$/;
-const ADDRESS_PATTERN = /^0x[a-fA-F0-9]{40}$/;
+const DAY_MS = 24 * 60 * 60 * 1000;
+const MAX_HISTORY_RANGE_MS = 365 * DAY_MS;
+const FUTURE_TOLERANCE_MS = 5 * 60 * 1000;
 
 export class LendingAnalyticsService {
   readonly #client: DataApiClient;
@@ -137,7 +139,7 @@ function validateHistoryInput(
 ): void {
   validateTimeRange(input.start_time, input.end_time);
   if (input.product_type === "vault") {
-    if (!ADDRESS_PATTERN.test(input.identifier)) {
+    if (!isEvmAddress(input.identifier)) {
       throw new ToolInputError(
         "invalid_vault_address",
         "Vault history requires a 20-byte EVM vault address.",
@@ -150,10 +152,18 @@ function validateHistoryInput(
     return;
   }
 
-  if (!MARKET_ID_PATTERN.test(input.identifier)) {
+  const validMarketId =
+    input.variable_rate_protocol === "aave_v3"
+      ? isAaveMarketId(input.identifier)
+      : isMorphoMarketId(input.identifier);
+  if (!validMarketId) {
+    const expected =
+      input.variable_rate_protocol === "aave_v3"
+        ? "Aave history requires an underlying-token address or market:token identifier."
+        : "Morpho variable-rate history requires a 32-byte market ID.";
     throw new ToolInputError(
       "invalid_market_id",
-      "Variable-rate history requires a 32-byte market ID.",
+      expected,
       "use_market_id_from_find_variable_rate_lending_markets",
     );
   }
@@ -171,6 +181,9 @@ function validateHistoryInput(
       "choose_supported_metric",
     );
   }
+  if (input.variable_rate_protocol === "aave_v3") {
+    validateAaveHistoryRange(input.start_time, input.end_time);
+  }
 }
 
 function unsupportedMetric(
@@ -186,11 +199,47 @@ function unsupportedMetric(
 }
 
 function validateTimeRange(from: string | undefined, to: string | undefined): void {
-  if (from && to && Date.parse(to) < Date.parse(from)) {
+  const end = to ? Date.parse(to) : Date.now();
+  const start = from ? Date.parse(from) : end - 30 * DAY_MS;
+  if (end <= start) {
     throw new ToolInputError(
       "invalid_time_range",
-      "end_time must be later than or equal to start_time.",
+      "end_time must be later than start_time.",
       "fix_time_range",
+    );
+  }
+  if (end - start > MAX_HISTORY_RANGE_MS) {
+    throw new ToolInputError(
+      "history_range_too_large",
+      "History range cannot exceed 365 days.",
+      "reduce_history_range",
+    );
+  }
+}
+
+function validateAaveHistoryRange(from: string | undefined, to: string | undefined): void {
+  const now = Date.now();
+  const end = to ? Date.parse(to) : now;
+  const start = from ? Date.parse(from) : end - 30 * DAY_MS;
+  if (start > now) {
+    throw new ToolInputError(
+      "history_starts_in_future",
+      "Aave V3 history cannot start in the future.",
+      "choose_past_time_range",
+    );
+  }
+  if (end > now + FUTURE_TOLERANCE_MS) {
+    throw new ToolInputError(
+      "history_ends_in_future",
+      "Aave V3 history cannot end in the future.",
+      "choose_past_time_range",
+    );
+  }
+  if (start < now - MAX_HISTORY_RANGE_MS) {
+    throw new ToolInputError(
+      "history_too_old",
+      "Aave V3 history is limited to the trailing 365 days.",
+      "choose_recent_time_range",
     );
   }
 }

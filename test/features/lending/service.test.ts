@@ -7,6 +7,9 @@ import { ToolInputError } from "../../../src/mcp/tool-result.js";
 const MARKET_ID = `0x${"1".repeat(64)}`;
 const VAULT_ADDRESS = `0x${"2".repeat(40)}`;
 const WALLET_ADDRESS = `0x${"3".repeat(40)}`;
+const AAVE_MARKET_ADDRESS = `0x${"4".repeat(40)}`;
+const AAVE_ASSET_ADDRESS = `0x${"5".repeat(40)}`;
+const AAVE_MARKET_ID = `${AAVE_MARKET_ADDRESS}:${AAVE_ASSET_ADDRESS}`;
 
 describe("LendingService", () => {
   it("finds compact variable-rate markets with a strict default-sized page", async () => {
@@ -64,6 +67,23 @@ describe("LendingService", () => {
     });
     expect(output.markets[0]).not.toHaveProperty("lltv");
     expect(output.markets[0]).not.toHaveProperty("raw_provider_payload");
+  });
+
+  it("rejects the Morpho-only collateral filter for Aave before contacting Data API", async () => {
+    const client = new RecordingDataApiClient({});
+
+    await expect(
+      new LendingService(client).findVariableMarkets({
+        protocol: "aave_v3",
+        collateral_asset_address: VAULT_ADDRESS,
+        sort: "supplyUsd",
+        order: "desc",
+        limit: 5,
+        offset: 0,
+        detail_level: "summary",
+      }),
+    ).rejects.toMatchObject({ code: "unsupported_filter" });
+    expect(client.calls).toHaveLength(0);
   });
 
   it("adds curated vault metrics in detailed mode and rejects invalid sort combinations", async () => {
@@ -174,6 +194,15 @@ describe("LendingService", () => {
         },
         warnings: [],
       },
+      "/defi/lending/variable-rate/markets/detail": {
+        data: {
+          protocol: "aave_v3",
+          market_id: AAVE_MARKET_ID,
+          market_address: AAVE_MARKET_ADDRESS,
+          loan_asset: { address: AAVE_ASSET_ADDRESS, symbol: "USDC" },
+        },
+        warnings: [],
+      },
     });
     const service = new LendingService(client);
 
@@ -193,6 +222,25 @@ describe("LendingService", () => {
       vault_address: VAULT_ADDRESS,
       allocation_count: 1,
     });
+    const aaveOutput = await service.getProductDetail({
+      product_type: "variable_rate_market",
+      identifier: AAVE_MARKET_ID,
+      variable_rate_protocol: "aave_v3",
+      vault_version: "V2",
+      detail_level: "summary",
+    });
+    expect(client.calls[1]).toEqual({
+      path: "/defi/lending/variable-rate/markets/detail",
+      query: {
+        network: "base",
+        protocol: "aave_v3",
+        market_id: AAVE_MARKET_ID,
+      },
+    });
+    expect(aaveOutput.variable_rate_market).toMatchObject({
+      protocol: "aave_v3",
+      market_id: AAVE_MARKET_ID,
+    });
     await expect(
       service.getProductDetail({
         product_type: "fixed_rate_market",
@@ -202,7 +250,7 @@ describe("LendingService", () => {
         detail_level: "summary",
       }),
     ).rejects.toBeInstanceOf(ToolInputError);
-    expect(client.calls).toHaveLength(1);
+    expect(client.calls).toHaveLength(2);
   });
 
   it("returns compact public wallet positions and preserves string warnings", async () => {

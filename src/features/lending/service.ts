@@ -2,6 +2,7 @@ import type { DataApiClient } from "../../data-api/types.js";
 import { ToolInputError } from "../../mcp/tool-result.js";
 import { dedupeWarnings } from "../shared/issues.js";
 import { firstString, records, type JsonRecord } from "../shared/records.js";
+import { isAaveMarketId, isEvmAddress, isMorphoMarketId } from "./identifiers.js";
 import {
   aavePosition,
   bluePosition,
@@ -26,9 +27,6 @@ import type {
   VariableMarketSearchOutput,
 } from "./schema.js";
 
-const MARKET_ID_PATTERN = /^0x[a-fA-F0-9]{64}$/;
-const ADDRESS_PATTERN = /^0x[a-fA-F0-9]{40}$/;
-
 export class LendingService {
   readonly #client: DataApiClient;
 
@@ -37,6 +35,13 @@ export class LendingService {
   }
 
   async findVariableMarkets(input: VariableMarketSearchInput): Promise<VariableMarketSearchOutput> {
+    if (input.protocol === "aave_v3" && input.collateral_asset_address) {
+      throw new ToolInputError(
+        "unsupported_filter",
+        "collateral_asset_address is available only for Morpho Blue markets.",
+        "remove_collateral_filter_or_choose_morpho_blue",
+      );
+    }
     const response = await this.#client.get<JsonRecord>("/defi/lending/variable-rate/markets", {
       network: "base",
       protocol: input.protocol,
@@ -226,7 +231,7 @@ function productDetailRequest(input: LendingProductDetailInput): {
   query: Record<string, string>;
 } {
   if (input.product_type === "vault") {
-    if (!ADDRESS_PATTERN.test(input.identifier)) {
+    if (!isEvmAddress(input.identifier)) {
       throw new ToolInputError(
         "invalid_vault_address",
         "Vault detail requires a 20-byte EVM vault address.",
@@ -239,10 +244,18 @@ function productDetailRequest(input: LendingProductDetailInput): {
     };
   }
 
-  if (!MARKET_ID_PATTERN.test(input.identifier)) {
+  const validMarketId =
+    input.product_type === "variable_rate_market" && input.variable_rate_protocol === "aave_v3"
+      ? isAaveMarketId(input.identifier)
+      : isMorphoMarketId(input.identifier);
+  if (!validMarketId) {
+    const expected =
+      input.product_type === "variable_rate_market" && input.variable_rate_protocol === "aave_v3"
+        ? "Aave detail requires an underlying-token address or market:token identifier."
+        : "Morpho market detail requires a 32-byte market ID.";
     throw new ToolInputError(
       "invalid_market_id",
-      "Lending market detail requires a 32-byte market ID.",
+      expected,
       "use_market_id_from_a_lending_discovery_tool",
     );
   }

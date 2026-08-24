@@ -6,6 +6,9 @@ import { ToolInputError } from "../../../src/mcp/tool-result.js";
 
 const MARKET_ID = `0x${"1".repeat(64)}`;
 const VAULT_ADDRESS = `0x${"2".repeat(40)}`;
+const AAVE_MARKET_ADDRESS = `0x${"3".repeat(40)}`;
+const AAVE_ASSET_ADDRESS = `0x${"4".repeat(40)}`;
+const AAVE_MARKET_ID = `${AAVE_MARKET_ADDRESS}:${AAVE_ASSET_ADDRESS}`;
 
 describe("LendingAnalyticsService", () => {
   it("returns the most recent bounded history points with explicit truncation", async () => {
@@ -97,6 +100,61 @@ describe("LendingAnalyticsService", () => {
       }),
     ).rejects.toBeInstanceOf(ToolInputError);
     expect(client.calls).toHaveLength(0);
+  });
+
+  it("accepts Aave market:token identifiers and enforces the supported time window", async () => {
+    const client = new RecordingDataApiClient({
+      "/defi/lending/variable-rate/markets/history": {
+        data: {
+          protocol: "aave_v3",
+          market_id: AAVE_MARKET_ID,
+          metric: "supplyApy",
+          interval: "day",
+          value_unit: "ratio",
+          upstream_window: "LAST_MONTH",
+          start_time: "2026-08-01T00:00:00Z",
+          end_time: "2026-08-02T00:00:00Z",
+          includes_rewards: false,
+          fees_deducted: null,
+          points: [],
+        },
+        warnings: [],
+      },
+    });
+    const service = new LendingAnalyticsService(client);
+
+    await service.getHistory({
+      product_type: "variable_rate_market",
+      identifier: AAVE_MARKET_ID,
+      variable_rate_protocol: "aave_v3",
+      vault_version: "V2",
+      metric: "supplyApy",
+      interval: "day",
+      start_time: "2026-08-01T00:00:00Z",
+      end_time: "2026-08-02T00:00:00Z",
+      points_limit: 60,
+    });
+
+    expect(client.calls[0]).toMatchObject({
+      path: "/defi/lending/variable-rate/markets/history",
+      query: { protocol: "aave_v3", market_id: AAVE_MARKET_ID },
+    });
+
+    const now = Date.now();
+    await expect(
+      service.getHistory({
+        product_type: "variable_rate_market",
+        identifier: AAVE_MARKET_ID,
+        variable_rate_protocol: "aave_v3",
+        vault_version: "V2",
+        metric: "supplyApy",
+        interval: "day",
+        start_time: new Date(now - 366 * 24 * 60 * 60 * 1000).toISOString(),
+        end_time: new Date(now).toISOString(),
+        points_limit: 60,
+      }),
+    ).rejects.toMatchObject({ code: "history_range_too_large" });
+    expect(client.calls).toHaveLength(1);
   });
 
   it("chooses a product-specific metric when history metric is omitted", async () => {

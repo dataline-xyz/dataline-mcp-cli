@@ -13,7 +13,7 @@ export const VARIABLE_MARKET_SORTS = [
   "borrowApy",
   "utilization",
 ] as const;
-export const VAULT_VERSIONS = ["V2", "V1", "All"] as const;
+export const VAULT_VERSIONS = ["V2", "V1"] as const;
 export const VAULT_DETAIL_VERSIONS = ["V2", "V1"] as const;
 export const VAULT_SORTS = ["totalAssetsUsd", "liquidityUsd", "apy", "netApy"] as const;
 export const FIXED_MARKET_SORTS = ["totalUnits", "maturity"] as const;
@@ -57,7 +57,9 @@ export const variableMarketSearchInputSchema = {
     .default("morpho_blue")
     .describe("Variable-rate protocol on Base: Morpho Blue or Aave V3."),
   loan_asset_address: evmAddress.optional(),
-  collateral_asset_address: evmAddress.optional(),
+  collateral_asset_address: evmAddress
+    .describe("Optional collateral token address; supported only for Morpho Blue markets.")
+    .optional(),
   sort: z.enum(VARIABLE_MARKET_SORTS).default("supplyUsd"),
   order: z.enum(LENDING_SORT_ORDERS).default("desc"),
   limit: listLimit,
@@ -96,7 +98,9 @@ export const lendingProductDetailInputSchema = {
     .trim()
     .min(1)
     .max(130)
-    .describe("Market ID for market products, or vault contract address for a vault."),
+    .describe(
+      "Morpho market ID, Aave underlying-token or market:token ID, or vault address, as returned by a lending discovery tool.",
+    ),
   variable_rate_protocol: z
     .enum(VARIABLE_RATE_PROTOCOLS)
     .default("morpho_blue")
