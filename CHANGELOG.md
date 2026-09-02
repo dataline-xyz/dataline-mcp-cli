@@ -7,6 +7,16 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+## [0.1.1] - 2026-09-02
+
+### Fixed
+
+- Aligned lending tools with the Data API contracts by accepting Aave market identifiers, rejecting
+  protocol-specific filters and invalid history ranges before paid requests, and removing the
+  unsupported aggregate vault version.
+
+## [0.1.0] - 2026-08-12
+
 ### Added
 
 - Public TypeScript package foundation for the combined Dataline CLI and local stdio MCP server.
