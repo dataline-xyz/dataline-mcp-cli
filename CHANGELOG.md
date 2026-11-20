@@ -7,6 +7,8 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+## [0.1.2] - 2026-11-20
+
 ### Fixed
 
 - Preserve the full OAuth authorization URL when opening the default browser on Windows, where
