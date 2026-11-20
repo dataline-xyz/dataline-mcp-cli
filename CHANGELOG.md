@@ -7,6 +7,14 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+### Fixed
+
+- Preserve the full OAuth authorization URL when opening the default browser on Windows, where
+  `cmd.exe` previously interpreted query-string ampersands as command separators. Use a
+  cross-platform browser opener and detect Windows launcher failures.
+- Encode wildcard scopes in OAuth authorization URLs so terminals link the entire URL printed by
+  `auth login --no-open` (#10).
+
 ## [0.1.1] - 2026-09-02
 
 ### Fixed

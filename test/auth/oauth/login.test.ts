@@ -6,7 +6,7 @@ import type { OAuthTokenSet, ProfileSecrets, SecretStore } from "../../../src/au
 const NOW = 1_700_000_000_000;
 
 describe("OAuth login", () => {
-  it("completes discovery, registration, loopback PKCE, exchange, and persistence", async () => {
+  it.each([true, false])("completes login with launchBrowser=%s", async (launchBrowser) => {
     const store = new MemorySecretStore();
     let registeredRedirectUri = "";
     const fetch = vi.fn<typeof globalThis.fetch>((input, init) => {
@@ -51,6 +51,18 @@ describe("OAuth login", () => {
       }
     });
     let authorizationUrl: URL | undefined;
+    let manualCallback: Promise<boolean> | undefined;
+    const completeCallback = async (url: URL) => {
+      const redirectUri = url.searchParams.get("redirect_uri");
+      const state = url.searchParams.get("state");
+      if (!redirectUri || !state) throw new Error("Missing callback parameters.");
+      const response = await globalThis.fetch(
+        `${redirectUri}?code=authorization-code&state=${encodeURIComponent(state)}`,
+      );
+      expect(response.status).toBe(200);
+      return true;
+    };
+    const openBrowser = vi.fn(completeCallback);
 
     const result = await loginWithOAuth({
       profileName: "default",
@@ -61,29 +73,27 @@ describe("OAuth login", () => {
         resource: "https://data-api.example",
       },
       requestTimeoutMs: 1_000,
+      callbackTimeoutMs: 5_000,
+      launchBrowser,
       fetch,
       now: () => NOW,
       onAuthorizationUrl: (url) => {
         authorizationUrl = url;
+        if (!launchBrowser) manualCallback = completeCallback(url);
       },
-      openBrowser: async (url) => {
-        const redirectUri = url.searchParams.get("redirect_uri");
-        const state = url.searchParams.get("state");
-        if (!redirectUri || !state) throw new Error("Missing callback parameters.");
-        const response = await globalThis.fetch(
-          `${redirectUri}?code=authorization-code&state=${encodeURIComponent(state)}`,
-        );
-        expect(response.status).toBe(200);
-        return true;
-      },
+      openBrowser,
     });
+    await manualCallback;
 
+    expect(openBrowser).toHaveBeenCalledTimes(launchBrowser ? 1 : 0);
     expect(result).toEqual({
       expiresAt: NOW + 3_600_000,
       scope: ["data.*.read"],
-      browserOpened: true,
+      browserOpened: launchBrowser,
     });
     expect(authorizationUrl?.origin).toBe("https://control.example");
+    expect(authorizationUrl?.search).toContain("scope=data.%2A.read");
+    expect(authorizationUrl?.searchParams.get("scope")).toBe("data.*.read");
     expect(authorizationUrl?.searchParams.get("code_challenge_method")).toBe("S256");
     expect(authorizationUrl?.searchParams.get("resource")).toBe("https://data-api.example");
     expect(registeredRedirectUri).toMatch(/^http:\/\/127\.0\.0\.1:\d+\/callback$/u);

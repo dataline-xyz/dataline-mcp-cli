@@ -41,11 +41,20 @@ describe("CLI", () => {
   it("runs OAuth login without exposing credentials in command output", async () => {
     let output = "";
     let errorOutput = "";
+    const authorizationUrl = new URL("https://control.example/oauth/authorize");
+    authorizationUrl.search = new URLSearchParams({
+      response_type: "code",
+      client_id: "oac_test",
+      redirect_uri: "http://127.0.0.1:54321/callback",
+      scope: "data.*.read",
+      resource: "https://data-api.example",
+      state: "opaque-state",
+      code_challenge: "a".repeat(43),
+      code_challenge_method: "S256",
+    }).toString();
     const oauthLogin: NonNullable<CliDependencies["oauthLogin"]> = vi.fn(
       (options: OAuthLoginOptions): Promise<OAuthLoginResult> => {
-        options.onAuthorizationUrl?.(
-          new URL("https://control.example/oauth/authorize?state=redacted"),
-        );
+        options.onAuthorizationUrl?.(authorizationUrl);
         return Promise.resolve({
           expiresAt: 1_700_003_600_000,
           scope: ["data.*.read"],
@@ -80,7 +89,7 @@ describe("CLI", () => {
       scope: ["data.*.read"],
       browserOpened: false,
     });
-    expect(errorOutput).toContain("https://control.example/oauth/authorize");
+    expect(errorOutput).toBe(`Open this URL to authorize Dataline:\n${authorizationUrl.href}\n`);
     expect(oauthLogin).toHaveBeenCalledWith(
       expect.objectContaining({
         callbackPort: 0,

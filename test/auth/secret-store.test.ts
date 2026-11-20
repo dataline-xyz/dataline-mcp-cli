@@ -38,7 +38,9 @@ describe("FileSecretStore", () => {
         tokenType: "Bearer",
       },
     });
-    expect((await stat(path)).mode & 0o777).toBe(0o600);
+    if (process.platform !== "win32") {
+      expect((await stat(path)).mode & 0o777).toBe(0o600);
+    }
     expect(await readFile(path, "utf8")).not.toContain("privateKey");
 
     await store.clear("default");

@@ -109,7 +109,7 @@ export function buildAuthorizationUrl(options: {
   codeChallenge: string;
 }): URL {
   const url = new URL(options.endpoint);
-  url.search = new URLSearchParams({
+  const params = new URLSearchParams({
     response_type: "code",
     client_id: options.clientId,
     redirect_uri: options.redirectUri,
@@ -118,6 +118,8 @@ export function buildAuthorizationUrl(options: {
     state: options.state,
     code_challenge: options.codeChallenge,
     code_challenge_method: "S256",
-  }).toString();
+  });
+  // Some terminals end clickable URLs at a literal asterisk in a wildcard scope.
+  url.search = params.toString().replaceAll("*", "%2A");
   return url;
 }

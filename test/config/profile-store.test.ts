@@ -36,7 +36,9 @@ describe("FileProfileStore", () => {
       dataApiUrl: "https://data-api.test.example",
       requestTimeoutMs: 5_000,
     });
-    expect((await stat(path)).mode & 0o777).toBe(0o600);
+    if (process.platform !== "win32") {
+      expect((await stat(path)).mode & 0o777).toBe(0o600);
+    }
   });
 
   it("rejects invalid and unknown profile names", async () => {
