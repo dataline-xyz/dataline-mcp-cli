@@ -59,10 +59,10 @@ npx -y @dataline-xyz/mcp@latest auth login
 npx -y @dataline-xyz/mcp@latest auth status
 ```
 
-Use `--no-open` to print the authorization URL instead of opening a browser. Keep the command
-running and paste the complete URL directly into the browser address bar, including every query
-parameter after `&`. On Windows, `npx.cmd` can be used from PowerShell. No environment variables are
-required for the default production OAuth configuration.
+With `--no-open`, the CLI prints the authorization URL and waits for you to open it. Keep the
+command running while you click the link in your terminal or copy the complete URL into your
+browser. On Windows, you can run `npx.cmd` from PowerShell. The default production OAuth
+configuration works without environment variables.
 
 ### API Key
 

@@ -92,6 +92,8 @@ describe("OAuth login", () => {
       browserOpened: launchBrowser,
     });
     expect(authorizationUrl?.origin).toBe("https://control.example");
+    expect(authorizationUrl?.search).toContain("scope=data.%2A.read");
+    expect(authorizationUrl?.searchParams.get("scope")).toBe("data.*.read");
     expect(authorizationUrl?.searchParams.get("code_challenge_method")).toBe("S256");
     expect(authorizationUrl?.searchParams.get("resource")).toBe("https://data-api.example");
     expect(registeredRedirectUri).toMatch(/^http:\/\/127\.0\.0\.1:\d+\/callback$/u);
