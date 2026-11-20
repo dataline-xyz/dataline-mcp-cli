@@ -1,4 +1,4 @@
-import { spawn } from "node:child_process";
+import open from "open";
 
 export type OpenBrowser = (url: URL) => Promise<boolean>;
 
@@ -7,29 +7,11 @@ export async function openBrowser(url: URL): Promise<boolean> {
     return false;
   }
 
-  const command = browserCommand(url.toString());
-  return new Promise((resolve) => {
-    const child = spawn(command.executable, command.arguments, {
-      detached: true,
-      stdio: "ignore",
-    });
-    child.once("error", () => {
-      resolve(false);
-    });
-    child.once("spawn", () => {
-      child.unref();
-      resolve(true);
-    });
-  });
-}
-
-function browserCommand(url: string): { executable: string; arguments: string[] } {
-  switch (process.platform) {
-    case "darwin":
-      return { executable: "open", arguments: [url] };
-    case "win32":
-      return { executable: "cmd.exe", arguments: ["/d", "/s", "/c", "start", "", url] };
-    default:
-      return { executable: "xdg-open", arguments: [url] };
+  try {
+    // The opener handles shell quoting and waits for the Windows launcher, not the browser.
+    const child = await open(url.toString(), { wait: false });
+    return child.signalCode === null && (child.exitCode === null || child.exitCode === 0);
+  } catch {
+    return false;
   }
 }
